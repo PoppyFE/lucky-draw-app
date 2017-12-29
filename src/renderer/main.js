@@ -13,8 +13,16 @@ Vue.config.productionTip = false;
 Vue.db = new Dexie('lucky-draw-app');
 Vue.db.version(1)
   .stores({
-    friends: '++id,name,age'
+    award: '++id,&serial_no,name',
+    driver: '++id,&serial_no,name',
+    diver_award_preselect: '++id,drive_no,award_no',
+    diver_award_curselect: '++id,drive_no,award_no',
+    luck_draw: '++id,round,$award_no,$drive_no',
   });
+
+Vue.db.open().catch((e) => {
+  console.error(`Indexed Open failed: ${e.stack}`);
+});
 
 /* eslint-disable no-new */
 new Vue({
