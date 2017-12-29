@@ -20,9 +20,9 @@ Vue.db.version(1)
     luck_draw: '++id,round,$award_no,$drive_no',
   });
 
-Vue.db.open().catch((e) => {
-  console.error(`Indexed Open failed: ${e.stack}`);
-});
+// Vue.db.open().catch((e) => {
+//   console.error(`Indexed Open failed: ${e.stack}`);
+// });
 
 /* eslint-disable no-new */
 new Vue({
