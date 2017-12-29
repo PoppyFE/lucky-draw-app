@@ -2403,9 +2403,9 @@ electron@^1.7.5:
     electron-download "^3.0.1"
     extract-zip "^1.0.3"
 
-element-ui@^2.0.9:
-  version "2.0.9"
-  resolved "http://registry.npm.taobao.org/element-ui/download/element-ui-2.0.9.tgz#d05ddbeeff1c122a0420c50bfa7e1039cb77da57"
+element-ui@^2.0.10:
+  version "2.0.10"
+  resolved "http://registry.npm.taobao.org/element-ui/download/element-ui-2.0.10.tgz#32f7101ce63565b14000bc9841b31d7ba41395eb"
   dependencies:
     async-validator "~1.8.1"
     babel-helper-vue-jsx-merge-props "^2.0.0"
