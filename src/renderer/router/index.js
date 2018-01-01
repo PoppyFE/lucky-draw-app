@@ -7,12 +7,36 @@ export default new Router({
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: require('@/components/home-page/index.vue').default,
+      redirect: '/home',
     },
+
+    {
+      path: '/home',
+      name: 'home',
+      component: require('@/components/home-page').default,
+    },
+
+    {
+      path: '/award',
+      name: 'award',
+      component: require('@/components/award-page').default,
+    },
+
+    {
+      path: '/driver',
+      name: 'driver',
+      component: require('@/components/driver-page').default,
+    },
+
+    {
+      path: '/debug',
+      name: 'debug',
+      component: require('@/components/debug-page').default,
+    },
+
     {
       path: '*',
-      redirect: '/',
+      redirect: '/home',
     },
   ],
 });

@@ -1,50 +1,139 @@
 <template>
-  <div id="wrapper">
-    <img id="logo" src="~@/assets/logo.png" alt="electron-vue">
-    <main>
-      <div class="left-side">
-        <span class="title">
-          Welcome to your new project!
-        </span>
-        <system-information></system-information>
-      </div>
+  <el-container>
 
-      <div class="right-side">
-        <div class="doc">
-          <div class="title">Getting Started</div>
-          <p>
-            electron-vue comes packed with detailed documentation that covers everything from
-            internal configurations, using the project structure, building your application,
-            and so much more.
-          </p>
-          <button @click="open('https://simulatedgreg.gitbooks.io/electron-vue/content/')">Read the Docs</button><br><br>
-        </div>
-        <div class="doc">
-          <div class="title alt">Other Documentation</div>
-          <button class="alt" @click="open('https://electron.atom.io/docs/')">Electron</button>
-          <button class="alt" @click="open('https://vuejs.org/v2/guide/')">Vue.js</button>
-        </div>
-      </div>
-    </main>
-  </div>
+    <award-dialog :model="dialogModel"
+                  v-if="dialogVisible"
+                  @close="dialogVisible=false"></award-dialog>
+
+    <el-header>
+      <el-button @click="handleCreate">添加</el-button>
+    </el-header>
+    <el-main style="overflow: scroll">
+      <el-table
+              stripe
+              :data="list"
+              style="width: 100%;">
+
+        <el-table-column
+                label="#"
+                type="index"
+                width="50">
+        </el-table-column>
+
+        <el-table-column
+          label="编号"
+          property="serial_no"
+          width="120">
+        </el-table-column>
+
+        <el-table-column
+          label="名称"
+          property="name"
+          width="200">
+        </el-table-column>
+
+        <el-table-column
+          label="图片">
+          <template slot-scope="scope">
+            <img height="80" :src="scope.row.img">
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          label="预选司机数">
+          <template slot-scope="scope">
+            <span>{{scope.row.preselectDrivers.length}}</span>
+          </template>
+        </el-table-column>
+
+        <!--<el-table-column-->
+          <!--label="创建时间"-->
+          <!--property="create_at">-->
+        <!--</el-table-column>-->
+
+        <!--<el-table-column-->
+          <!--label="更新时间"-->
+          <!--property="update_at">-->
+        <!--</el-table-column>-->
+
+        <el-table-column
+          label="状态"
+          width="80">
+        </el-table-column>
+
+        <el-table-column label="操作">
+          <template slot-scope="scope">
+            <el-button
+                    size="mini"
+                    @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+            <el-button
+                    size="mini"
+                    type="danger"
+                    @click="handleDelete(scope.$index, scope.row)">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-main>
+
+  </el-container>
 </template>
 
 <script>
-  import SystemInformation from './LandingPage/SystemInformation';
+
+  import AwardDialog from '../award-dialog/index.vue';
 
   export default {
-    name: 'landing-page',
-    components: { SystemInformation },
+    name: 'award-page',
+    components: {
+      AwardDialog,
+    },
+    data() {
+      return {
+        dialogVisible: false,
+        dialogModel: {
+          mode: 'create',
+          data: {},
+        },
+      };
+    },
+
+    beforeRouteEnter(to, from, next) {
+      next((vm) => {
+        vm.$store.dispatch('INIT_AWARD_LIST');
+      });
+    },
+
+    computed: {
+      list() {
+        return this.$store.state.award.list;
+      },
+    },
+
     methods: {
-      open(link) {
-        this.$electron.shell.openExternal(link);
+      handleCreate() {
+        this.dialogModel.mode = 'create';
+        this.dialogVisible = true;
+      },
+
+      handleEdit(index, award) {
+        this.dialogModel = {
+          mode: 'edit',
+          data: award,
+        };
+
+        this.dialogVisible = true;
+      },
+
+      handleDelete(index, award) {
+        this.$confirm(`确认删除奖品( ${award.serial_no || ''} - ${award.name || ''} ) ？`)
+          .then(() => {
+            this.$store.dispatch('REMOVE_AWARD', award.id);
+          })
+          .catch(() => {});
       },
     },
   };
 </script>
 
-<style>
-  /*@import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro');*/
-
-
+<style scoped>
 </style>

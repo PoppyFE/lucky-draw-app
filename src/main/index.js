@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron' // eslint-disable-line
+import { app, BrowserWindow, ipcMain } from 'electron' // eslint-disable-line
 
 /**
  * Set `__static` path to static files in production
@@ -21,7 +21,12 @@ function createWindow() {
     height: 600,
     useContentSize: true,
     width: 1200,
+    webPreferences: {
+      devTools: process.env.NODE_ENV === 'development',
+    },
   });
+
+  mainWindow.maximize();
 
   mainWindow.loadURL(winURL);
 
@@ -42,4 +47,8 @@ app.on('activate', () => {
   if (mainWindow === null) {
     createWindow();
   }
+});
+
+ipcMain.on('open-dev-tool', () => {
+  mainWindow.webContents.openDevTools();
 });

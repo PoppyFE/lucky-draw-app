@@ -6,10 +6,10 @@
 
 <script>
   export default {
-    name: 'home-page',
+    name: 'luckdraw-page',
+
     methods: {
-      open(link) {
-        this.$electron.shell.openExternal(link);
+      open() {
       },
     },
   };
@@ -17,7 +17,7 @@
 
 <style scoped>
   .full-height {
-    background-image: url("~@/assets/home-bg.jpg");
-    background-size: cover;
+    /*background-image: url("~@/assets/home-bg.jpg");*/
+    /*background-size: cover;*/
   }
 </style>

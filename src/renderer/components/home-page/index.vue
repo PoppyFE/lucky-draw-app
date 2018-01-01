@@ -1,6 +1,5 @@
 <template>
-  <div class="full-height">
-    <router-link to="home" class="el-icon-caret-right">进入</router-link>
+  <div class="page">
   </div>
 </template>
 
@@ -16,8 +15,9 @@
 </script>
 
 <style scoped>
-  .full-height {
-    background-image: url("~@/assets/home-bg.jpg");
-    background-size: cover;
+  .page {
+    /*background-image: url("~@/assets/home-bg.jpg");*/
+    /*background-size: cover;*/
+    /*background-color: #3a8ee6;*/
   }
 </style>
