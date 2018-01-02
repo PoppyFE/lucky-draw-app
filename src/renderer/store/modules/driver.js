@@ -14,6 +14,9 @@ const mutations = {
   },
 
   ADD_DRIVER(state, driver) {
+    if (!driver.preselectAwards) {
+      driver.preselectAwards = [];
+    }
     state.list.push(driver);
   },
 
@@ -83,8 +86,7 @@ const actions = {
     const { preselectAwards = [] } = driveData;
 
     return AwardPreselect.db
-      .where('drive_no')
-      .equals(driveData.drive_no)
+      .where({'drive_no':driveData.drive_no})
       .delete()
       .then(() => {
         const lists = preselectAwards.map(item => ({
@@ -110,11 +112,20 @@ const actions = {
       });
   },
 
-  REMOVE_DRIVER({ commit }, id) {
-    return Driver.db.delete(id)
+  REMOVE_DRIVER({ commit }, driver) {
+    return Driver.db.delete(driver.id)
       .then((val) => {
-        commit('REMOVE_DRIVER', id);
-        return val;
+        return AwardPreselect.db
+          .where({'drive_no': driver.serial_no})
+          .delete()
+          .then(() => {
+            commit('REMOVE_DRIVER', driver.id);
+            return val;
+          })
+          .catch(()=>{
+            commit('REMOVE_DRIVER', driver.id);
+            return val;
+          });
       })
       .catch((err) => {
         throw err;
@@ -132,13 +143,13 @@ const actions = {
             // 查询所选奖品
             return Promise.all(preSelects.map(item => {
               return Award.db.where({serial_no: item.award_no}).first();
-            }))
-              .then(val => {
+            })).then(val => {
                 driver.preselectAwards = val;
                 return driver;
               });
           })
           .catch(() => {
+            driver.preselectAwards = [];
             return driver
           });
       })))

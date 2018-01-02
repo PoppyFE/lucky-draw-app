@@ -137,7 +137,7 @@
       handleDelete(index, driver) {
         this.$confirm(`确认删除司机( ${driver.serial_no || ''} - ${driver.name || ''} ) ？`)
           .then(() => {
-            this.$store.dispatch('REMOVE_DRIVER', driver.id);
+            this.$store.dispatch('REMOVE_DRIVER', driver);
           })
           .catch(() => {});
       },
