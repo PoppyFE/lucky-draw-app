@@ -9,34 +9,31 @@
             @selection-change="onSelectedChangedHandler"
             style="width: 100%;height: 500px;overflow: scroll;">
       <el-table-column
-        type="selection"
-        width="55">
+        type="selection">
       </el-table-column>
 
       <el-table-column
               label="#"
-              type="index"
-              width="50">
+              type="index">
       </el-table-column>
 
       <el-table-column
         label="编号"
-        property="serial_no"
-        width="120">
+        property="serial_no">
       </el-table-column>
 
-      <el-table-column
-        label="名称"
-        property="name"
-        width="200">
-      </el-table-column>
+      <!--<el-table-column-->
+        <!--label="名称"-->
+        <!--property="name">-->
+      <!--</el-table-column>-->
 
-      <el-table-column
-        label="图片">
-        <template slot-scope="scope">
-          <img height="80" :src="scope.row.img">
-        </template>
-      </el-table-column>
+      <!--<el-table-column-->
+        <!--label="图片">-->
+        <!--<template slot-scope="scope">-->
+          <!--<img height="80" :src="scope.row.img">-->
+        <!--</template>-->
+      <!--</el-table-column>-->
+
     </el-table>
     <div slot="footer" class="dialog-footer">
       <el-button @click="onCloseHandle(true)">取 消</el-button>
@@ -100,7 +97,7 @@
 
         this.$store.dispatch('UPDATE_AWARD_DIVER_PRESELECT', {
           preselectAwards: [...this.multipleSelection],
-          drive_no: this.model.serial_no,
+          driver_no: this.model.serial_no,
         }).then(() => {
           this.dataSaving = false;
           this.$emit('close');

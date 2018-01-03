@@ -22,6 +22,7 @@ function createWindow() {
     useContentSize: true,
     width: 1200,
     webPreferences: {
+      webSecurity: false,
       devTools: process.env.NODE_ENV === 'development',
     },
   });
@@ -33,6 +34,18 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
+}
+
+const isSecondInstance = app.makeSingleInstance(() => {
+  // Someone tried to run a second instance, we should focus our window.
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+  }
+});
+
+if (isSecondInstance) {
+  app.quit();
 }
 
 app.on('ready', createWindow);

@@ -18,17 +18,65 @@
       </el-form-item>
 
       <el-form-item label="图片">
+        <span>奖品图片</span>
         <el-upload
           :multiple="false"
           :http-request="doAvatarUpload"
           class="avatar-uploader"
+          style="display: inline-block"
           action="XXXXX"
           :show-file-list="false"
-          :before-upload="beforeAvatarUpload">
+          :before-upload="beforeImageUpload">
           <img v-if="form.img" :src="form.img" class="avatar">
           <i v-else class="el-icon-plus avatar-uploader-icon"></i>
         </el-upload>
 
+        <span>抽奖背景图片</span>
+        <el-upload
+          :multiple="false"
+          :http-request="doAwardImgUpload"
+          style="display: inline-block"
+          class="avatar-uploader"
+          action="XXXXX"
+          :show-file-list="false"
+          :before-upload="beforeImageUpload">
+          <img v-if="form.award_img" :src="form.award_img" class="avatar">
+          <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+        </el-upload>
+      </el-form-item>
+
+      <el-form-item label="背景声音">
+        <el-upload
+          :multiple="false"
+          :http-request="doSoundUpload"
+          class="sound-uploader"
+          action="XXXXX"
+          :show-file-list="false"
+          :before-upload="beforeSoundUpload">
+          <i v-if="form.sound" class="sound el-icon-service"></i>
+          <i v-else class="el-icon-plus sound-uploader-icon"></i>
+        </el-upload>
+        <audio v-if="form.sound" class="success"
+               controls="controls"
+               :src="form.sound">
+        </audio>
+      </el-form-item>
+
+      <el-form-item label="获奖声音">
+        <el-upload
+          :multiple="false"
+          :http-request="doAwardSoundUpload"
+          class="sound-uploader"
+          action="XXXXX"
+          :show-file-list="false"
+          :before-upload="beforeSoundUpload">
+          <i v-if="form.award_sound" class="sound el-icon-service"></i>
+          <i v-else class="el-icon-plus sound-uploader-icon"></i>
+        </el-upload>
+        <audio v-if="form.award_sound" class="success"
+               controls="controls"
+               :src="form.award_sound">
+        </audio>
       </el-form-item>
 
     </el-form>
@@ -40,6 +88,8 @@
 </template>
 
 <script>
+  /* eslint-disable */
+  import uuidv4 from 'uuid/v4';
 
   export default {
     name: 'award-dialog',
@@ -56,6 +106,9 @@
           serial_no: '',
           name: '',
           img: null,
+          award_img: null, //获奖背景图片
+          sound: null,// 背景
+          award_sound: null, // 获奖
         },
         rules: {
           serial_no: [
@@ -71,22 +124,97 @@
 
     created() {
       if (this.model.mode === 'edit') {
-        this.form = Object.assign({}, this.model.data);
+        this.form = Object.assign({}, this.form, this.model.data);
       }
     },
 
     methods: {
       doAvatarUpload(uploader) {
         const file = uploader.file;
-        const fileReader = new FileReader();
-        const that = this;
-        fileReader.onloadend = (evt) => {
-          that.form.img = evt.target.result;
-        };
-        fileReader.readAsDataURL(file);
+
+        const path = require('path');
+        const fs = require('fs-extra');
+        const os = require('os');
+        const userDataDir = process.env.NODE_ENV === 'development' ? os.tmpdir() : this.$electron.remote.app.getAppPath('userData');
+        const targetPath = path.join(userDataDir, 'img', uuidv4() + path.extname(file.path));
+        fs.copy(file.path, targetPath)
+          .then(() => {
+            this.form.img = `file://${targetPath}`;
+          })
+          .catch((err) => {
+            this.$message.error(`保存出错！+ \n${err}`);
+          });
       },
 
-      beforeAvatarUpload(file) {
+      doAvatarUpload(uploader) {
+        const file = uploader.file;
+
+        const path = require('path');
+        const fs = require('fs-extra');
+        const os = require('os');
+        const userDataDir = process.env.NODE_ENV === 'development' ? os.tmpdir() : this.$electron.remote.app.getAppPath('userData');
+        const targetPath = path.join(userDataDir, 'img', uuidv4() + path.extname(file.path));
+        fs.copy(file.path, targetPath)
+          .then(() => {
+            this.form.img = `file://${targetPath}`;
+          })
+          .catch((err) => {
+            this.$message.error(`保存出错！+ \n${err}`);
+          });
+      },
+
+      doAwardImgUpload(uploader) {
+        const file = uploader.file;
+
+        const path = require('path');
+        const fs = require('fs-extra');
+        const os = require('os');
+        const userDataDir = process.env.NODE_ENV === 'development' ? os.tmpdir() : this.$electron.remote.app.getAppPath('userData');
+        const targetPath = path.join(userDataDir, 'img', uuidv4() + path.extname(file.path));
+        fs.copy(file.path, targetPath)
+          .then(() => {
+            this.form.award_img = `file://${targetPath}`;
+          })
+          .catch((err) => {
+            this.$message.error(`保存出错！+ \n${err}`);
+          });
+      },
+
+      doSoundUpload(uploader) {
+        const file = uploader.file;
+
+        const path = require('path');
+        const fs = require('fs-extra');
+        const os = require('os');
+        const userDataDir = process.env.NODE_ENV === 'development' ? os.tmpdir() : this.$electron.remote.app.getAppPath('userData');
+        const targetPath = path.join(userDataDir, 'sound', uuidv4() + path.extname(file.path));
+        fs.copy(file.path, targetPath)
+          .then(() => {
+            this.form.sound = `file://${targetPath}`;
+          })
+          .catch((err) => {
+            this.$message.error(`保存出错！+ \n${err}`);
+          });
+      },
+
+      doAwardSoundUpload(uploader) {
+        const file = uploader.file;
+
+        const path = require('path');
+        const fs = require('fs-extra');
+        const os = require('os');
+        const userDataDir = process.env.NODE_ENV === 'development' ? os.tmpdir() : this.$electron.remote.app.getAppPath('userData');
+        const targetPath = path.join(userDataDir, 'sound', uuidv4() + path.extname(file.path));
+        fs.copy(file.path, targetPath)
+          .then(() => {
+            this.form.award_sound = `file://${targetPath}`;
+          })
+          .catch((err) => {
+            this.$message.error(`保存出错！+ \n${err}`);
+          });
+      },
+
+      beforeImageUpload(file) {
         if (file.size / 1024 / 1024 > 5) {
           this.$message.error('上传头像图片大小不能超过 5MB!');
           return false;
@@ -100,35 +228,47 @@
         return true;
       },
 
+      beforeSoundUpload(file) {
+        if (file.size / 1024 / 1024 > 20) {
+          this.$message.error('上传声音大小不能超过 20MB!');
+          return false;
+        }
+
+        if (file.type !== 'audio/mp3') {
+          this.$message.error('只支持mp3 格式的文件!');
+          return false;
+        }
+
+        return true;
+      },
+
       onCloseHandle(cancel) {
         if (cancel) {
           this.$emit('close');
           return;
         }
 
-        const that = this;
-
         this.$refs.form.validate((valid) => {
           if (!valid) return;
 
           // save the data;
-          if (that.model.mode === 'create') {
-            that.$store.dispatch('ADD_AWARD', that.form)
+          if (this.model.mode === 'create') {
+            this.$store.dispatch('ADD_AWARD', Object.assign({}, this.form))
               .then(() => {
-                that.$emit('close');
+                this.$emit('close');
               })
               .catch((err) => {
-                that.$message.error(err.message);
+                this.$message.error(err.message);
               });
           }
 
-          if (that.model.mode === 'edit') {
-            that.$store.dispatch('UPDATE_AWARD', that.form)
+          if (this.model.mode === 'edit') {
+            this.$store.dispatch('UPDATE_AWARD', Object.assign({}, this.form))
               .then(() => {
-                that.$emit('close');
+                this.$emit('close');
               })
               .catch((err) => {
-                that.$message.error(err.message);
+                this.$message.error(err.message);
               });
           }
         });
@@ -161,5 +301,32 @@
     width: 178px;
     height: 178px;
     display: block;
+  }
+
+
+  .sound-uploader {
+    display: inline-block;
+    border: 1px dashed #d9d9d9;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 50px;
+    position: relative;
+    overflow: hidden;
+  }
+  .avatar-uploader:hover {
+    border-color: #409EFF;
+  }
+  .sound-uploader-icon {
+    font-size: 28px;
+    color: #8c939d;
+    width: 50px;
+    height: 50px;
+    line-height: 50px;
+    text-align: center;
+  }
+  .sound {
+    width: 50px;
+    height: 50px;
+    line-height: 50px;
   }
 </style>

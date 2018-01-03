@@ -38,7 +38,7 @@ const mutations = {
 
   UPDATE_AWARD_DIVER_PRESELECT(state, driverData) {
     state.list.forEach((driver) => {
-      if (driver.serial_no === driverData.drive_no) {
+      if (driver.serial_no === driverData.driver_no) {
         driver.preselectAwards = driverData.preselectAwards || [];
       }
     });
@@ -86,13 +86,13 @@ const actions = {
     const { preselectAwards = [] } = driveData;
 
     return AwardPreselect.db
-      .where({'drive_no':driveData.drive_no})
+      .where({'driver_no':driveData.driver_no})
       .delete()
       .then(() => {
         const lists = preselectAwards.map(item => ({
-          drive_no: driveData.drive_no,
+          driver_no: driveData.driver_no,
           award_no: item.serial_no,
-          serial_no: driveData.drive_no + '-' + item.serial_no,
+          serial_no: driveData.driver_no + '-' + item.serial_no,
           create_at: new Date(),
           update_at: new Date(),
         }));
@@ -105,27 +105,32 @@ const actions = {
           .then(() => preselectAwards);
       })
       .then((preselectAwards) => {
-        commit('UPDATE_AWARD_DIVER_PRESELECT', { preselectAwards, drive_no: driveData.drive_no });
+        commit('UPDATE_AWARD_DIVER_PRESELECT', { preselectAwards, driver_no: driveData.driver_no });
       })
       .catch((err) => {
+        console.error(err);
         throw err;
       });
   },
 
   REMOVE_DRIVER({ commit }, driver) {
     return Driver.db.delete(driver.id)
-      .then((val) => {
+      .then(() => {
         return AwardPreselect.db
-          .where({'drive_no': driver.serial_no})
+          .where({'driver_no': driver.serial_no})
           .delete()
-          .then(() => {
-            commit('REMOVE_DRIVER', driver.id);
-            return val;
-          })
           .catch(()=>{
-            commit('REMOVE_DRIVER', driver.id);
-            return val;
           });
+      })
+      .then(() => {
+        return Luckdraw.db
+          .where({ award_no: award.serial_no })
+          .delete()
+          .catch(() => {
+          });
+      })
+      .then(() => {
+        commit('REMOVE_DRIVER', driver.id);
       })
       .catch((err) => {
         throw err;
@@ -137,7 +142,7 @@ const actions = {
       .then(drivers => Promise.all(drivers.map(driver => {
         // 寻找挑选的奖品
         return AwardPreselect.db
-          .where({'drive_no': driver.serial_no})
+          .where({'driver_no': driver.serial_no})
           .toArray()
           .then((preSelects) => {
             // 查询所选奖品

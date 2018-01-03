@@ -1,6 +1,9 @@
 import Award from '../../db/Award';
 import Driver from '../../db/Driver';
 import AwardPreselect from '../../db/AwardPreselect';
+import Luckdraw from '../../db/Luckdraw';
+
+/* eslint-disable */
 
 const state = {
   list: [],
@@ -13,6 +16,7 @@ const mutations = {
   },
 
   ADD_AWARD(state, award) {
+    award.preselectDrivers = [];
     state.list.push(award);
   },
 
@@ -35,17 +39,14 @@ const mutations = {
 
 const actions = {
   ADD_AWARD({ commit }, awardData) {
-    // do something async
-    // commit('ADD_AWARD');
-
     awardData.create_at = new Date();
     awardData.update_at = new Date();
 
     return Award.db.add(awardData)
-      .then((val) => {
-        commit('ADD_AWARD', awardData);
-        return val;
-      })
+      .then(id => Award.db.get(id)
+        .then((award) => {
+          commit('ADD_AWARD', award);
+        }))
       .catch((err) => {
         if (err.name === 'ConstraintError') {
           if (err.message.includes('serial_no')) {
@@ -59,9 +60,9 @@ const actions = {
   UPDATE_AWARD({ commit }, awardData) {
     awardData.update_at = new Date();
     return Award.db.update(awardData.id, awardData)
-      .then(() => {
-        commit('UPDATE_AWARD', awardData);
-        return awardData;
+      .then(() => Award.db.get(awardData.id))
+      .then((award) => {
+        commit('UPDATE_AWARD', award);
       })
       .catch((err) => {
         if (err.name === 'ConstraintError') {
@@ -73,11 +74,24 @@ const actions = {
       });
   },
 
-  REMOVE_AWARD({ commit }, id) {
-    return Award.db.delete(id)
-      .then((val) => {
-        commit('REMOVE_AWARD', id);
-        return val;
+  REMOVE_AWARD({ commit }, award) {
+    return Award.db.delete(award.id)
+      .then(() => {
+        return AwardPreselect.db
+          .where({ award_no: award.serial_no })
+          .delete()
+          .catch(() => {
+          });
+      })
+      .then(() => {
+        return Luckdraw.db
+          .where({ award_no: award.serial_no })
+          .delete()
+          .catch(() => {
+          });
+      })
+      .then(() => {
+        commit('REMOVE_AWARD', award.id);
       })
       .catch((err) => {
         throw err;
@@ -92,7 +106,7 @@ const actions = {
         .then(preSelects =>
           // 查询被所选司机们
           Promise.all(
-            preSelects.map(item => Driver.db.where({ serial_no: item.drive_no }).first()))
+            preSelects.map(item => Driver.db.where({ serial_no: item.driver_no }).first()))
             .then((val) => {
               award.preselectDrivers = val;
               return award;

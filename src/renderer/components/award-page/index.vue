@@ -5,6 +5,10 @@
                   v-if="dialogVisible"
                   @close="dialogVisible=false"></award-dialog>
 
+    <driver-picker :model="driverModel"
+                   v-if="driverVisible"
+                   @close="driverVisible=false"></driver-picker>
+
     <el-header>
       <el-button @click="handleCreate">添加</el-button>
     </el-header>
@@ -40,9 +44,19 @@
         </el-table-column>
 
         <el-table-column
-          label="预选司机数">
+          label="预选司机们">
           <template slot-scope="scope">
-            <span>{{scope.row.preselectDrivers.length}}</span>
+            <!--<span v-if="scope.row.preselectDrivers.length <= 0">0 人</span>-->
+            <!--<a v-else-if="scope.row.preselectDrivers.length> 0"-->
+               <!--style="cursor:pointer"-->
+               <!--@click="handleDiverPick(scope.row)">{{scope.row.preselectDrivers.length}} 人</a>-->
+            <span style="cursor:pointer"
+                  @click="handleDiverPick(scope.row)">
+              查看
+            </span>
+            <el-badge :value="scope.row.preselectDrivers.length">
+            </el-badge>
+
           </template>
         </el-table-column>
 
@@ -56,10 +70,10 @@
           <!--property="update_at">-->
         <!--</el-table-column>-->
 
-        <el-table-column
-          label="状态"
-          width="80">
-        </el-table-column>
+        <!--<el-table-column-->
+          <!--label="状态"-->
+          <!--width="80">-->
+        <!--</el-table-column>-->
 
         <el-table-column label="操作">
           <template slot-scope="scope">
@@ -81,11 +95,13 @@
 <script>
 
   import AwardDialog from '../award-dialog/index.vue';
+  import DriverPicker from '../driver-picker/index.vue';
 
   export default {
     name: 'award-page',
     components: {
       AwardDialog,
+      DriverPicker,
     },
     data() {
       return {
@@ -94,6 +110,8 @@
           mode: 'create',
           data: {},
         },
+        driverVisible: false,
+        driverModel: null,
       };
     },
 
@@ -127,9 +145,15 @@
       handleDelete(index, award) {
         this.$confirm(`确认删除奖品( ${award.serial_no || ''} - ${award.name || ''} ) ？`)
           .then(() => {
-            this.$store.dispatch('REMOVE_AWARD', award.id);
+            this.$store.dispatch('REMOVE_AWARD', award);
           })
           .catch(() => {});
+      },
+
+      handleDiverPick(award) {
+        if (award.preselectDrivers.length <= 0) return;
+        this.driverModel = award;
+        this.driverVisible = true;
       },
     },
   };

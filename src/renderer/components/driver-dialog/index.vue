@@ -45,6 +45,9 @@
 </template>
 
 <script>
+  /* eslint-disable */
+
+  import uuidv4 from 'uuid/v4';
 
   export default {
     name: 'award-dialog',
@@ -62,6 +65,7 @@
           name: '',
           img: null,
           sayWords: '',
+          preselectAwards: [],
         },
 
         rules: {
@@ -91,12 +95,27 @@
 
       doAvatarUpload(uploader) {
         const file = uploader.file;
-        const fileReader = new FileReader();
-        const that = this;
-        fileReader.onloadend = (evt) => {
-          that.form.img = evt.target.result;
-        };
-        fileReader.readAsDataURL(file);
+
+        const path = require('path');
+        const fs = require('fs-extra');
+        const os = require('os');
+        const userDataDir = process.env.NODE_ENV === 'development' ? os.tmpdir() :
+            this.$electron.remote.app.getAppPath('userData');
+        const targetPath = path.join(userDataDir, 'img', uuidv4() + path.extname(file.path));
+        fs.copy(file.path, targetPath)
+          .then(() => {
+            this.form.img = `file://${targetPath}`;
+          })
+          .catch((err) => {
+            this.$message.error('保存出错！+ \n' + err);
+          });
+
+        // const fileReader = new FileReader();
+        // const that = this;
+        // fileReader.onloadend = (evt) => {
+        // that.form.img = evt.target.result;
+        // };
+        // fileReader.readAsDataURL(file);
       },
 
       beforeAvatarUpload(file) {
@@ -136,7 +155,7 @@
           }
 
           if (that.model.mode === 'edit') {
-            that.$store.dispatch('UPDATE_DRIVER', that.form)
+            that.$store.dispatch('UPDATE_DRIVER', Object.assign({}, that.form))
               .then(() => {
                 that.$emit('close');
               })
