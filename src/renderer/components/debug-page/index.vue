@@ -11,6 +11,11 @@
       <el-button slot="append" @click="openDevTools">DevTool</el-button>
     </div>
 
+    <div style="padding: 10px 0;">
+      <el-button slot="append" :loading="clearLuckdrawLoading"
+                 @click="clearLuckdraw()">重置预选和抽奖数据</el-button>
+    </div>
+
   </div>
 </template>
 
@@ -21,6 +26,7 @@
     data() {
       return {
         sayWords: '',
+        clearLuckdrawLoading: false,
       };
     },
     methods: {
@@ -28,6 +34,19 @@
         // this.$electron.shell.openExternal(link);
         if (!this.sayWords) return;
         this.$say.speak(this.sayWords);
+      },
+
+      clearLuckdraw() {
+        this.clearLuckdrawLoading = true;
+        this.$store.dispatch('RESET_LUCKDRAW')
+          .then(() => {
+            this.$message('重置数据完成!');
+            this.clearLuckdrawLoading = false;
+          })
+          .catch((err) => {
+            this.$message.error(`错了哦，${err.message}`);
+            this.clearLuckdrawLoading = false;
+          });
       },
 
       openDevTools() {

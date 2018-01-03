@@ -47,10 +47,10 @@
   body {
     margin: 0;
     padding: 0;
-    font-family: 'Segoe UI', SegoeUI, 'Microsoft YaHei', 微软雅黑, "Helvetica Neue", Helvetica, Arial, sans-serif;;
+    font-family: 'Segoe UI', SegoeUI, 'Microsoft YaHei', 微软雅黑, "Helvetica Neue", Helvetica, Arial, sans;
   }
 
-  html, body, #app, .page, .full-height {
+  html, body, #app {
     height: 100%;
   }
 
@@ -60,6 +60,7 @@
   }
 
   .page {
+    flex-grow: 1;
     padding: 20px;
   }
 
