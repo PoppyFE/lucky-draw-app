@@ -35,6 +35,12 @@ export default new Router({
     },
 
     {
+      path: '/luckdraw-result',
+      name: 'luckdraw-result',
+      component: require('@/components/luckdraw-result-page').default,
+    },
+
+    {
       path: '/debug',
       name: 'debug',
       component: require('@/components/debug-page').default,

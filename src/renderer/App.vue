@@ -7,6 +7,7 @@
       <el-tab-pane label="奖品" name="award"></el-tab-pane>
       <el-tab-pane label="司机" name="driver"></el-tab-pane>
       <el-tab-pane label="抽奖" name="luckdraw"></el-tab-pane>
+      <el-tab-pane label="抽奖结果" name="luckdraw-result"></el-tab-pane>
       <el-tab-pane label="调试" name="debug"></el-tab-pane>
     </el-tabs>
     <transition name="slide-left" transition-mode="flip">

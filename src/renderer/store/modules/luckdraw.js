@@ -8,6 +8,7 @@ import Luckdraw from '../../db/Luckdraw'
 const state = {
   item: null,
   list: [],
+  results: [],
 };
 
 const mutations = {
@@ -16,8 +17,12 @@ const mutations = {
   },
 
   UPDATE_LUCKDRAW(luckdraw) {
-    list.push(luckdraw);
-  }
+    state.list.push(luckdraw);
+  },
+  
+  LOAD_LUCKDRAW_RESULT(state, list) {
+    state.results = list;
+  },
 };
 
 const actions = {
@@ -218,6 +223,38 @@ const actions = {
         }
         throw err;
       });
+  },
+  
+  LOAD_LUCKDRAW_RESULT({commit}) {
+    return Luckdraw.db.toArray()
+      .then((luckdraws)=>{
+        return Promise.all(luckdraws.map(luckdraw => {
+          return Promise.all([
+            Driver.db
+              .where({serial_no: luckdraw.driver_no})
+              .first(),
+  
+            Award.db
+              .where({serial_no: luckdraw.award_no})
+              .first(),
+          ])
+          .then(([driver, award])=> {
+            return {
+              ...luckdraw,
+              drive_name: driver.name,
+              drive_img: driver.img,
+              award_name: award.name,
+              award_img: award.img,
+            }
+          })
+        }))
+      })
+      .then((results)=>{
+        commit('LOAD_LUCKDRAW_RESULT', results);
+      })
+      .catch((err) => {
+        throw err;
+      })
   }
 };
 
