@@ -6,7 +6,6 @@ import AwardPreselect from '../../db/AwardPreselect';
 import Luckdraw from '../../db/Luckdraw'
 
 const state = {
-  item: null,
   list: [],
   results: [],
 };
@@ -155,7 +154,8 @@ const actions = {
         const {luckDrawAward, luckdrawMapDriver, awardPreselectsMapAward } = results;
         if (!luckDrawAward) return results;
 
-        results.filterPreselectDrivers = [...awardPreselectsMapAward[luckDrawAward.serial_no]]
+        results.filterPreselectDrivers = awardPreselectsMapAward[luckDrawAward.serial_no] ?
+          [...awardPreselectsMapAward[luckDrawAward.serial_no]] : []
           .filter((driver) => {
             if (luckdrawMapDriver[driver.serial_no]) {
               return false;
@@ -179,7 +179,7 @@ const actions = {
           });
         }
 
-        if (filterDrivers) {
+        if ((!filterPreselectDrivers || filterPreselectDrivers.length === 0) && filterDrivers) {
           filterDrivers.forEach((driver) => {
             if (!drivesMap[driver.serial_no]) {
               drivesMap[driver.serial_no] = driver;
@@ -197,11 +197,10 @@ const actions = {
           luckdrawDrives: results.luckdrawDrives,
         }
       })
-      .then((item) => {
-        commit('LOAD_LUCKDRAW', item);
-      })
+      // .then((item) => {
+      //   commit('LOAD_LUCKDRAW', item);
+      // })
       .catch(err => {
-        debugger;
         throw err;
       })
   },
@@ -209,7 +208,7 @@ const actions = {
   UPDATE_LUCKDRAW({ commit }, luckdrawData) {
     luckdrawData.create_at = new Date();
     luckdrawData.update_at = new Date();
-    luckdrawData.driver_no + '-' + luckdrawData.award_no;
+    luckdrawData.serial_no = luckdrawData.driver_no + '-' + luckdrawData.award_no;
     return Luckdraw.db.add(awardData)
       .then(id => Luckdraw.db.get(id)
         .then((luckdraw) => {
@@ -227,34 +226,41 @@ const actions = {
   
   LOAD_LUCKDRAW_RESULT({commit}) {
     return Luckdraw.db.toArray()
-      .then((luckdraws)=>{
+      .then((luckdraws) => {
         return Promise.all(luckdraws.map(luckdraw => {
           return Promise.all([
-            Driver.db
-              .where({serial_no: luckdraw.driver_no})
-              .first(),
-  
-            Award.db
-              .where({serial_no: luckdraw.award_no})
-              .first(),
-          ])
-          .then(([driver, award])=> {
-            return {
-              ...luckdraw,
-              drive_name: driver.name,
-              drive_img: driver.img,
-              award_name: award.name,
-              award_img: award.img,
-            }
-          })
+              Driver.db
+                .where({serial_no: luckdraw.driver_no})
+                .first(),
+            
+              Award.db
+                .where({serial_no: luckdraw.award_no})
+                .first(),
+            ])
+            .then(([driver, award]) => {
+              return {
+                ...luckdraw,
+                drive_name: driver.name,
+                drive_img: driver.img,
+                award_name: award.name,
+                award_img: award.img,
+              }
+            })
         }))
       })
-      .then((results)=>{
+      .then((results) => {
         commit('LOAD_LUCKDRAW_RESULT', results);
       })
       .catch((err) => {
         throw err;
       })
+  },
+
+  RESET_LUCKDRAW() {
+    return Promise.all([
+      AwardPreselect.db.clear(),
+      Luckdraw.db.clear(),
+    ]);
   }
 };
 
