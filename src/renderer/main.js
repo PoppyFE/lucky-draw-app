@@ -2,6 +2,7 @@ import Vue from 'vue';
 import axios from 'axios';
 import Dexie from 'dexie';
 import ElementUI from 'element-ui';
+import TWEEN from '@tweenjs/tween.js';
 
 import 'element-ui/lib/theme-chalk/index.css';
 import 'animate.css/animate.min.css';
@@ -19,6 +20,7 @@ Dexie.debug = process.env.NODE_ENV !== 'production'; // In production, set to fa
 Vue.use(ElementUI);
 
 window.Vue = Vue;
+window.TWEEN = TWEEN;
 window.Dexie = Dexie;
 Vue.prototype.$db = db;
 

@@ -188,13 +188,13 @@ const actions = {
           });
         }
 
-        results.luckdrawDrives = luckdrawDrives;
+        results.luckdrawDrivers = luckdrawDrives;
         return results;
       })
       .then((results) => {// 最后一步
         return {
           luckdrawAward: results.luckDrawAward,
-          luckdrawDrives: results.luckdrawDrives,
+          luckdrawDrives: results.luckdrawDrivers,
         }
       })
       // .then((item) => {

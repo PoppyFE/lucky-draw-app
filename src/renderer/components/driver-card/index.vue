@@ -1,5 +1,5 @@
 <template>
-  <div class="card">
+  <div class="card" :class="{selected:selected}">
     <!--content-->
     <div class="content" :style="{'background-image': 'url('+driver.img+')'}">
     </div>
@@ -27,10 +27,19 @@
       },
     },
 
+    data() {
+      return {
+        selected: false,
+      }
+    },
+
     created() {
     },
 
     methods: {
+      setSelect(val) {
+        this.selected = val;
+      }
     }
   };
 </script>
@@ -40,11 +49,16 @@
     width: 120px;
     height: 160px;
     border-radius: 6px;
-    margin: 4px;
+    margin: 4px 8px;
     background-color: #ffffff;
     display: flex;
     flex-direction: column;
     position: relative;
+  }
+
+  .selected {
+    border: #e54c60 3px solid;
+    box-shadow: 0 0 20px rgb(238, 138, 0);
   }
 
   .content {

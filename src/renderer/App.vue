@@ -10,11 +10,7 @@
       <el-tab-pane label="抽奖结果" name="luckdraw-result"></el-tab-pane>
       <el-tab-pane label="调试" name="debug"></el-tab-pane>
     </el-tabs>
-    <transition name="slide-left" transition-mode="flip">
-      <keep-alive>
-        <router-view></router-view>
-      </keep-alive>
-    </transition>
+      <router-view></router-view>
   </div>
 </template>
 
@@ -73,6 +69,11 @@
     opacity: 0;
     transform: translate(-30px, 0);
   }
+
+  .el-form-item {
+    margin-bottom: 5px;
+  }
+
 </style>
 
 

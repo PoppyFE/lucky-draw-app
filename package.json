@@ -23,6 +23,7 @@
     "postinstall": "npm run lint:fix"
   },
   "dependencies": {
+    "@tweenjs/tween.js": "^17.1.1",
     "animate.css": "^3.5.2",
     "axios": "^0.16.1",
     "dexie": "^2.0.1",
@@ -30,7 +31,6 @@
     "fs-extra": "^5.0.0",
     "say": "^0.14.0",
     "uuid": "^3.1.0",
-    "velocity-animate": "^1.5.0",
     "vue": "^2.3.3",
     "vue-electron": "^1.0.6",
     "vue-router": "^2.5.3",

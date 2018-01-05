@@ -1,17 +1,25 @@
 <template>
   <div class="card">
+    <audio v-if="moveSpeed > 0 && award.luckdraw_sound"
+           autoplay
+           loop
+           :src="award.luckdraw_sound">
+    </audio>
     <!--content-->
     <div class="content" :style="{'background-image': 'url('+award.img+')', filter: 'blur(' + (secret ? 8 : 0) + 'px)'}">
     </div>
+    <div class="powerbar" :style="{width: moveSpeed * 100 + '%', 'background-color':loadingColor }"></div>
     <span class="title">{{award.serial_no}}</span>
+
+    <i v-if="moveSpeed > 0"
+       class="el-icon-loading loading"
+       :style="{'animation-duration': (-2.5 * moveSpeed + 3) + 's', color: loadingColor}"></i>
     <!--contolbar-->
     <div class="footer">
       <span v-if="secret">***********</span>
       <span v-else>{{award.name}}</span>
       <div style="flex-grow: 1"></div>
       <!--el-icon-loadin-->
-
-      <i v-if="isLoading" class="el-icon-loading"></i>
 
       <el-button type="text"
                  class="button awardBtn"
@@ -35,12 +43,23 @@
         award_sound: null, // 获奖
       },
       secret: true,
+      moveSpeed: 0, //0-1
     },
 
     data() {
       return {
-        isLoading: false,
       };
+    },
+
+    computed: {
+      loadingColor() {
+        if (this.moveSpeed >= 1) return '#FF0014';
+        else if (this.moveSpeed >= 0.9 && this.moveSpeed < 1) return '#FF4F5A';
+        else if (this.moveSpeed >= 0.6 && this.moveSpeed < 0.9) return '#FF7B80';
+        else if (this.moveSpeed >= 0.4 && this.moveSpeed < 0.6) return '#FFB2B0';
+        else if (this.moveSpeed >= 0.2 && this.moveSpeed < 0.4) return '#FFD9D0';
+        else if (this.moveSpeed == 0) return '#fff';
+      },
     },
 
     created() {
@@ -48,12 +67,10 @@
 
     methods: {
       awardBtnMouseDownHandler() {
-        this.isLoading = true;
         this.$emit('holdluckdraw');
       },
 
       awardBtnMouseUpHandler() {
-        this.isLoading = false;
         this.$emit('releaseluckdraw')
       },
 
@@ -79,6 +96,27 @@
     top: 10px;
     color: #ffffff;
     text-shadow: 0 0 2px #000;
+  }
+
+  .powerbar {
+    position: absolute;
+    width: 0%;
+    filter: blur(1px);
+    background-color: #ffffff;
+    opacity: 0.8;
+    height: 60px;
+    left: 0px;
+    bottom: 0px;
+    pointer-events: none;
+  }
+
+  .loading {
+    position: absolute;
+    font-size: 80px;
+    filter: blur(2px);
+    color: #FFF;
+    left: 85px;
+    top: 110px;
   }
 
   .content {

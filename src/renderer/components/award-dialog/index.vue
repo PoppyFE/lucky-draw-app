@@ -60,6 +60,7 @@
                controls="controls"
                :src="form.sound">
         </audio>
+        <el-button type="primary" icon="el-icon-delete" @click="form.sound=null"></el-button>
       </el-form-item>
 
       <el-form-item label="获奖声音">
@@ -77,6 +78,25 @@
                controls="controls"
                :src="form.award_sound">
         </audio>
+        <el-button type="primary" icon="el-icon-delete" @click="form.award_sound=null"></el-button>
+      </el-form-item>
+
+      <el-form-item label="抽奖声音">
+        <el-upload
+          :multiple="false"
+          :http-request="doLuckDrawSoundUpload"
+          class="sound-uploader"
+          action="XXXXX"
+          :show-file-list="false"
+          :before-upload="beforeSoundUpload">
+          <i v-if="form.luckdraw_sound" class="sound el-icon-service"></i>
+          <i v-else class="el-icon-plus sound-uploader-icon"></i>
+        </el-upload>
+        <audio v-if="form.luckdraw_sound" class="success"
+               controls="controls"
+               :src="form.luckdraw_sound">
+        </audio>
+        <el-button type="primary" icon="el-icon-delete" @click="form.luckdraw_sound=null"></el-button>
       </el-form-item>
 
     </el-form>
@@ -107,8 +127,9 @@
           name: '',
           img: null,
           award_img: null, //获奖背景图片
-          sound: null,// 背景
-          award_sound: null, // 获奖
+          sound: null,// 背景声音
+          award_sound: null, // 获奖声音
+          luckdraw_sound: null, //抽奖声音
         },
         rules: {
           serial_no: [
@@ -208,6 +229,23 @@
         fs.copy(file.path, targetPath)
           .then(() => {
             this.form.award_sound = `file://${targetPath}`;
+          })
+          .catch((err) => {
+            this.$message.error(`保存出错！+ \n${err}`);
+          });
+      },
+
+      doLuckDrawSoundUpload(uploader) {
+        const file = uploader.file;
+
+        const path = require('path');
+        const fs = require('fs-extra');
+        const os = require('os');
+        const userDataDir = process.env.NODE_ENV === 'development' ? os.tmpdir() : this.$electron.remote.app.getAppPath('userData');
+        const targetPath = path.join(userDataDir, 'sound', uuidv4() + path.extname(file.path));
+        fs.copy(file.path, targetPath)
+          .then(() => {
+            this.form.luckdraw_sound = `file://${targetPath}`;
           })
           .catch((err) => {
             this.$message.error(`保存出错！+ \n${err}`);

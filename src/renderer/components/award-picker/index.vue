@@ -78,19 +78,24 @@
           return;
         }
 
-        if (this.multipleSelection.length > 2) {
-          this.$message.error('不要贪心哦，不能选择超过2个奖品哦！');
-          return;
-        }
-
-        if (this.multipleSelection.length !== 2) {
-          this.$message.error('麻烦亲～ 选择2个奖品撒！');
-          return;
-        }
-
         // 这里修改数据
         if (!this.model) {
           return;
+        }
+
+        const canSelectCount = this.model.preaward_count || 2;
+        const nowSelectCount = this.multipleSelection.length;
+
+        if (process.env.NODE_ENV !== 'development') {
+          if (nowSelectCount > canSelectCount) {
+            this.$message.error(`不要贪心哦，不能选择超过${canSelectCount}个奖品哦！`);
+            return;
+          }
+
+          if (nowSelectCount < 1) {
+            this.$message.error('麻烦亲～ 至少选择2个奖品撒！');
+            return;
+          }
         }
 
         this.dataSaving = true;

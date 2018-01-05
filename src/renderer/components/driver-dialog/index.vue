@@ -29,11 +29,34 @@
         </el-upload>
       </el-form-item>
 
+      <el-form-item label="可以预选奖品数量">
+        <el-input-number v-model="form.preaward_count" :min="1" :max="4" label="预选奖品数量"></el-input-number>
+      </el-form-item>
+
+
+      <!--<el-form-item label="获奖声音">-->
+        <!--<el-input v-model="form.sayWords"-->
+                  <!--:maxlength="500"-->
+                  <!--auto-complete="off"></el-input>-->
+        <!--<el-button icon="el-icon-caret-right" @click="paySayWords"></el-button>-->
+      <!--</el-form-item>-->
+
       <el-form-item label="获奖声音">
-        <el-input v-model="form.sayWords"
-                  :maxlength="500"
-                  auto-complete="off"></el-input>
-        <el-button icon="el-icon-caret-right" @click="paySayWords"></el-button>
+        <el-upload
+          :multiple="false"
+          :http-request="doAwardSoundUpload"
+          class="sound-uploader"
+          action="XXXXX"
+          :show-file-list="false"
+          :before-upload="beforeSoundUpload">
+          <i v-if="form.award_sound" class="sound el-icon-service"></i>
+          <i v-else class="el-icon-plus sound-uploader-icon"></i>
+        </el-upload>
+        <audio v-if="form.award_sound" class="success"
+               controls="controls"
+               :src="form.award_sound">
+        </audio>
+        <el-button type="primary" icon="el-icon-delete" @click="form.award_sound=null"></el-button>
       </el-form-item>
 
     </el-form>
@@ -64,8 +87,9 @@
           serial_no: '',
           name: '',
           img: null,
-          sayWords: '',
-          preselectAwards: [],
+//          sayWords: '',
+          award_sound: null,
+          preaward_count: 0,
         },
 
         rules: {
@@ -92,6 +116,37 @@
         if (!this.form.sayWords) return;
         this.$say.speak(this.form.sayWords);
       },
+
+      beforeSoundUpload(file) {
+        if (file.size / 1024 / 1024 > 20) {
+          this.$message.error('上传声音大小不能超过 20MB!');
+          return false;
+        }
+
+        if (file.type !== 'audio/mp3') {
+          this.$message.error('只支持mp3 格式的文件!');
+          return false;
+        }
+
+        return true;
+      },
+
+      doAwardSoundUpload(uploader) {
+        const file = uploader.file;
+        const path = require('path');
+        const fs = require('fs-extra');
+        const os = require('os');
+        const userDataDir = process.env.NODE_ENV === 'development' ? os.tmpdir() : this.$electron.remote.app.getAppPath('userData');
+        const targetPath = path.join(userDataDir, 'sound', uuidv4() + path.extname(file.path));
+        fs.copy(file.path, targetPath)
+          .then(() => {
+            this.form.award_sound = `file://${targetPath}`;
+          })
+          .catch((err) => {
+            this.$message.error(`保存出错！+ \n${err}`);
+          });
+      },
+
 
       doAvatarUpload(uploader) {
         const file = uploader.file;
@@ -193,5 +248,31 @@
     width: 178px;
     height: 178px;
     display: block;
+  }
+
+  .sound-uploader {
+    display: inline-block;
+    border: 1px dashed #d9d9d9;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 50px;
+    position: relative;
+    overflow: hidden;
+  }
+  .avatar-uploader:hover {
+    border-color: #409EFF;
+  }
+  .sound-uploader-icon {
+    font-size: 28px;
+    color: #8c939d;
+    width: 50px;
+    height: 50px;
+    line-height: 50px;
+    text-align: center;
+  }
+  .sound {
+    width: 50px;
+    height: 50px;
+    line-height: 50px;
   }
 </style>
