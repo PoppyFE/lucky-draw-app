@@ -8,12 +8,14 @@
     <!--content-->
     <div class="content" :style="{'background-image': 'url('+award.img+')', filter: 'blur(' + (secret ? 8 : 0) + 'px)'}">
     </div>
-    <div class="powerbar" :style="{width: moveSpeed * 100 + '%', 'background-color':loadingColor }"></div>
+    <div class="powerbar" :style="{width: moveSpeed * 100 + '%', 'background-color':loadingColor }">
+      <p v-if="moveSpeed > 0.9" style="color: #cf9236;font-size: 20px;text-align: center;line-height: 60px">～恭喜发财 保持～</p>
+    </div>
     <span class="title">{{award.serial_no}}</span>
 
-    <i v-if="moveSpeed > 0"
+    <i v-if="moveSpeed > 0.01"
        class="el-icon-loading loading"
-       :style="{'animation-duration': (-2.5 * moveSpeed + 3) + 's', color: loadingColor}"></i>
+       :style="{'animation-duration': (-2.5 * moveSpeed + 2.8) + 's', color: loadingColor}"></i>
     <!--contolbar-->
     <div class="footer">
       <span v-if="secret">***********</span>
@@ -85,9 +87,10 @@
     border-radius: 8px;
     background-color: #ffffff;
     display: flex;
-    position: relative;
+    position: absolute;
     flex-direction: column;
     margin: 4px;
+    transform:translate(-50%, -50%)
   }
 
   .title {

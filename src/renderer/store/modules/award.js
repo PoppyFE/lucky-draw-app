@@ -41,6 +41,8 @@ const actions = {
   ADD_AWARD({ commit }, awardData) {
     awardData.create_at = new Date();
     awardData.update_at = new Date();
+    awardData.serial_no = awardData.driver_no + '-'
+
 
     return Award.db.add(awardData)
       .then(id => Award.db.get(id)

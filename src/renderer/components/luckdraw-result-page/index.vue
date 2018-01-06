@@ -43,19 +43,19 @@
             <img height="80" :src="scope.row.driver_img">
           </template>
         </el-table-column>
-  
+
         <el-table-column
           label="奖品编号"
           property="award_no"
           width="120">
         </el-table-column>
-  
+
         <el-table-column
           label="奖品"
           property="award_name"
           width="100">
         </el-table-column>
-  
+
         <el-table-column
           width="250"
           label="奖品图片">
@@ -63,7 +63,7 @@
             <img height="80" :src="scope.row.award_img">
           </template>
         </el-table-column>
-        
+
       </el-table>
     </el-main>
   </el-container>
@@ -72,26 +72,25 @@
 <script>
 
   export default {
-    name: 'drive-page',
+    name: 'luckdraw-result-page',
 
     components: {
     },
 
-    beforeRouteEnter(to, from, next) {
-      next((vm) => {
-        vm.$store.dispatch('LOAD_LUCKDRAW_RESULT');
-      });
-    },
-
     data() {
       return {
+        list: [],
       };
     },
 
-    computed: {
-      list() {
-        return this.$store.state.luckdraw.results;
-      },
+    created() {
+      this.$store.dispatch('LOAD_LUCKDRAW_RESULT')
+        .then((results) => {
+          this.list = results;
+        })
+        .catch((err) => {
+          console.error(err);
+        });
     },
 
     methods: {

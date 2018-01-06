@@ -6,8 +6,6 @@ import AwardPreselect from '../../db/AwardPreselect';
 import Luckdraw from '../../db/Luckdraw'
 
 const state = {
-  list: [],
-  results: [],
 };
 
 const mutations = {
@@ -15,12 +13,8 @@ const mutations = {
     state.item = item;
   },
 
-  UPDATE_LUCKDRAW(luckdraw) {
+  ADD_LUCKDRAW(luckdraw) {
     state.list.push(luckdraw);
-  },
-  
-  LOAD_LUCKDRAW_RESULT(state, list) {
-    state.results = list;
   },
 };
 
@@ -34,6 +28,7 @@ const actions = {
           .then((awards)=>{
             results.awards = awards;
             results.awardsMap = {};
+            results.totalAwardsCount = awards ? awards.length : 0;
             awards.forEach((award)=> {
               results.awardsMap[award.serial_no] = award;
             });
@@ -49,6 +44,7 @@ const actions = {
             drivers.forEach((driver)=> {
               results.driversMap[driver.serial_no] = driver;
             });
+            results.totalDriversCount = drivers ? drivers.length : 0;
             return results;
           })
       })
@@ -83,6 +79,7 @@ const actions = {
         return Luckdraw.db.toArray()
           .then((luckdraws)=>{
             results.luckdraws = luckdraws;
+            results.totalSelectedAwardsCount = results.totalSelectedDriversCount = luckdraws ? luckdraws.length : 0;
             results.luckdrawMapDriver = {};
             results.luckdrawMapAward = {};
             luckdraws.forEach((luckdraw) => {
@@ -192,10 +189,42 @@ const actions = {
         return results;
       })
       .then((results) => {// 最后一步
-        return {
+        const result = {
           luckdrawAward: results.luckDrawAward,
           luckdrawDrives: results.luckdrawDrivers,
+
+          totalAwardsCount: results.totalAwardsCount,
+          totalDriversCount: results.totalDriversCount,
+          totalSelectedAwardsCount:results.totalSelectedAwardsCount,
+          totalSelectedDriversCount: results.totalSelectedDriversCount,
+        };
+
+        if (results.luckdrawDrivers && results.luckdrawDrivers.length === 1) {
+          const singleDriver = results.luckdrawDrivers[0];
+          const copySingleDriver = Object.assign({}, singleDriver);
+          copySingleDriver.need_show = true;
+          results.luckdrawDrivers.push(copySingleDriver);
         }
+
+        if (results.totalAwardsCount <= 0) {
+          result.error = true;
+          result.errorMsg = '没有奖品 怎么开始抽奖！';
+        } else if (results.totalDriversCount <= 0) {
+          result.error = true;
+          result.errorMsg = '没有司机！ 怎么开始抽奖！';
+        } else if (results.totalSelectedAwardsCount >= results.totalAwardsCount) {
+          result.error = true;
+          result.errorMsg = '奖品已经被司机拿光了 不能开始抽奖！';
+        } else if (results.totalSelectedDriversCount === results.totalDriversCount) {
+          result.error = true;
+          result.errorMsg = '所有司机已经抽完奖，抽奖结束！ 不能开始抽奖！';
+        }
+
+        if (result.error) {
+          throw result;
+        }
+
+        return result;
       })
       // .then((item) => {
       //   commit('LOAD_LUCKDRAW', item);
@@ -205,14 +234,14 @@ const actions = {
       })
   },
 
-  UPDATE_LUCKDRAW({ commit }, luckdrawData) {
+  ADD_LUCKDRAW({ commit }, luckdrawData) {
     luckdrawData.create_at = new Date();
     luckdrawData.update_at = new Date();
     luckdrawData.serial_no = luckdrawData.driver_no + '-' + luckdrawData.award_no;
-    return Luckdraw.db.add(awardData)
+    return Luckdraw.db.add(luckdrawData)
       .then(id => Luckdraw.db.get(id)
         .then((luckdraw) => {
-          commit('UPDATE_LUCKDRAW', luckdraw);
+          commit('ADD_LUCKDRAW', luckdraw);
         }))
       .catch((err) => {
         if (err.name === 'ConstraintError') {
@@ -223,7 +252,7 @@ const actions = {
         throw err;
       });
   },
-  
+
   LOAD_LUCKDRAW_RESULT({commit}) {
     return Luckdraw.db.toArray()
       .then((luckdraws) => {
@@ -232,7 +261,7 @@ const actions = {
               Driver.db
                 .where({serial_no: luckdraw.driver_no})
                 .first(),
-            
+
               Award.db
                 .where({serial_no: luckdraw.award_no})
                 .first(),
@@ -240,8 +269,8 @@ const actions = {
             .then(([driver, award]) => {
               return {
                 ...luckdraw,
-                drive_name: driver.name,
-                drive_img: driver.img,
+                driver_name: driver.name,
+                driver_img: driver.img,
                 award_name: award.name,
                 award_img: award.img,
               }
@@ -249,7 +278,7 @@ const actions = {
         }))
       })
       .then((results) => {
-        commit('LOAD_LUCKDRAW_RESULT', results);
+        return results;
       })
       .catch((err) => {
         throw err;
