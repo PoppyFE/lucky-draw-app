@@ -7,14 +7,14 @@ export default new Router({
   routes: [
     {
       path: '/',
-      redirect: '/home',
+      redirect: '/award',
     },
 
-    {
-      path: '/home',
-      name: 'home',
-      component: require('@/components/home-page').default,
-    },
+    // {
+    //   path: '/home',
+    //   name: 'home',
+    //   component: require('@/components/home-page').default,
+    // },
 
     {
       path: '/award',

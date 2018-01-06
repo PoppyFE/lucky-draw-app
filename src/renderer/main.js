@@ -3,6 +3,7 @@ import axios from 'axios';
 import Dexie from 'dexie';
 import ElementUI from 'element-ui';
 import TWEEN from '@tweenjs/tween.js';
+import Howl from 'howler';
 
 import 'element-ui/lib/theme-chalk/index.css';
 import 'animate.css/animate.min.css';
@@ -22,12 +23,8 @@ Vue.use(ElementUI);
 window.Vue = Vue;
 window.TWEEN = TWEEN;
 window.Dexie = Dexie;
+window.Howl = Howl.Howl;
 Vue.prototype.$db = db;
-
-if (typeof require !== 'undefined') {
-  const say = require('say');
-  Vue.prototype.$say = say;
-}
 
 /* eslint-disable no-new */
 window.app = new Vue({
@@ -36,3 +33,35 @@ window.app = new Vue({
   store,
   template: '<App/>',
 }).$mount('#app');
+
+window.DEBUGGER = false;
+
+
+//
+// if (typeof require !== 'undefined') {
+//   const say = require('say');
+//   Vue.prototype.$say = say;
+// }
+
+// callback(err, evt)
+Vue.prototype.$say = (worlds, opts, callback) => {
+  worlds = worlds || '';
+  opts = opts || {};
+  if (typeof opts === 'function') {
+    callback = opts;
+  }
+
+  const utterance = new SpeechSynthesisUtterance(worlds);
+  utterance.rate = 0.4;
+  if (callback) {
+    utterance.onend = (evt) => {
+      callback(null, evt);
+    };
+
+    utterance.onerror = (err) => {
+      callback(err);
+    };
+  }
+
+  window.speechSynthesis.speak(utterance);
+};

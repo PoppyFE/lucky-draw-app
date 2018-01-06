@@ -1,53 +1,56 @@
 <template>
-  <div class="page">
-    <!--控制条-->
-    <div class="crontrolbar">
-      <span>背景音乐</span>
-      <audio v-if="backgroundSound"
-         autoplay
-         loop
-         controls
-         :src="backgroundSound">
-      </audio>
-      <audio v-if="awardSound"
-             ref="awardSound"
-             :src="awardSound">
-      </audio>
-      <audio v-if="driverSound"
-             ref="driverSound"
-             :src="driverSound">
-      </audio>
-      <el-button round @click="enterFullScreen">全屏</el-button>
-    </div>
-    <div id="luckdrawStage" ref="luckdrawStage"
-         :style="{'background-image': 'url('+backgroundImg+')'}">
-      <p class="award-count">{{'奖品剩余:' + (totalAwardsCount - totalSelectedAwardsCount)}}</p>
-      <p class="driver-count">{{'司机剩余:' + (totalDriversCount - totalSelectedDriversCount)}}</p>
-      <el-button class="next-luckdraw"
-                 :loading="isDataLoading"
-                 @click="nextLuckDrawClickHanler"
-                 round>下一组抽奖</el-button>
-      <div class="center-point">
+  <div class="stage" ref="stage"
+     :style="{'background-image': 'url('+backgroundImg+')'}">
 
-        <driver-card v-for="(driver, index) in luckdrawDrivers"
-                     :key="'driver_'+index"
-                     :index="index"
-                     :count="luckdrawDrivers.length"
-                     :randomSeed="randomSeed"
-                     :ref="'driver_' + index"
-                     :driver="driver"></driver-card>
+    <p class="award-count">{{'奖品剩余:' + (totalAwardsCount - totalSelectedAwardsCount)}}</p>
+    <p class="driver-cur-count">{{'当前司机:' + (luckdrawDrivers ? luckdrawDrivers.length : 0)}}</p>
+    <p class="driver-count">{{'司机剩余:' + (totalDriversCount - totalSelectedDriversCount)}}</p>
 
-        <award-card
-          v-if="luckdrawAward"
-          :award="luckdrawAward"
-          :secret="!isCompleteLuckdraw"
-          :moveSpeed="moveAcceleration"
-          :round="totalSelectedAwardsCount"
-          @holdluckdraw="startLuckdraw"
-          @releaseluckdraw="releaseLuckdraw"
-        ></award-card>
+    <el-button class="next-luckdraw"
+               :loading="isDataLoading"
+               @click="nextLuckDrawClickHanler"
+               round>下一组抽奖</el-button>
 
-      </div>
+    <el-button class="fullscreen-btn" round @click="enterFullScreen">全屏</el-button>
+    <el-button class="quit-btn" round @click="exitPage">退出</el-button>
+
+    <audio class="bg-sound"
+           autoplay
+           loop
+           controls
+           :src="backgroundSound">
+    </audio>
+
+    <!--<audio v-if="awardSound"-->
+           <!--ref="awardSound"-->
+           <!--:src="awardSound">-->
+    <!--</audio>-->
+    <!---->
+    <!--<audio v-if="driverSound"-->
+           <!--ref="driverSound"-->
+           <!--:src="driverSound">-->
+    <!--</audio>-->
+
+    <div class="center-point">
+
+      <driver-card v-for="(driver, index) in luckdrawDrivers"
+                   :key="'driver_'+index"
+                   :index="index"
+                   :count="luckdrawDrivers.length"
+                   :randomSeed="randomSeed"
+                   :ref="'driver_' + index"
+                   :driver="driver"></driver-card>
+      <award-card
+        v-if="luckdrawAward"
+        :award="luckdrawAward"
+        :secret="!isCompleteLuckdraw"
+        :power="speed / 80"
+        :maxHoldTime="~~maxHoldTime"
+        :round="totalSelectedAwardsCount"
+        @holdluckdraw="startLuckdraw"
+        @releaseluckdraw="releaseLuckdraw"
+      ></award-card>
+
     </div>
   </div>
 </template>
@@ -67,9 +70,10 @@
 
     data() {
       return {
-        // 速度表达的是移动 表示0个单位/秒 1表示 10个单位/秒
-        moveSpeed: 0,
-        moveAcceleration: 0,
+        // 速度表达的是移动 表示0个单位/秒 1表示 10个单位/秒 80 最大
+        speed: 0,
+
+        maxHoldTime: 0,
 
         backgroundImg: '',
         backgroundSound: '',
@@ -99,20 +103,20 @@
     created() {
       const that = this;
 
-      // 加速度表示速度的变化程度范围0-1
-      this.moveAcceleration = 0;
+      // 加速度表示速度的变化程度范围0.01-1
+      this.power = 0;
       this.backgroundImg = process.env.NODE_ENV === 'development' ?
         'file:///Users/alex/Projects/lucky-draw-app/static/luckdraw_bg.jpg' : '';
 
       this.moveTween = new TWEEN.Tween(this);
       this.timestamp = new Date().getTime();
       this.luckdrawDriverIndex = 0;
-      this.sectionMoveDistance = 0;
+      this.distance = 0;
       this.selectedDriver = null;
 
       // keep the ani
       function animate() {
-        requestAnimationFrame(animate);
+        that.requestAnimationFrameHandler = requestAnimationFrame(animate);
         TWEEN.update();
         const curTime = new Date().getTime();
         that.render((curTime - that.timestamp) * 0.001);
@@ -124,13 +128,12 @@
         evt.preventDefault();
         evt.stopImmediatePropagation();
         if (evt.code !== 'Space') return;
-        if (this.holdLuckDrawBtn) return;
+        if (that.holdLuckDrawBtn) return;
 
         console.log('stageKeyDown');
-
-        this.startLuckdraw();
+        that.startLuckdraw();
 //        console.log('stageKeyDownHandler');
-      }).bind(this);
+      });
 
       this.stageKeyUpHandler = (function(evt) {
         evt.preventDefault();
@@ -138,17 +141,21 @@
         if (evt.code !== 'Space') return;
 
         console.log('stageKeyUp');
+        that.releaseLuckdraw();
+      });
 
-        this.releaseLuckdraw();
-      }).bind(this);
-
-      window.document.addEventListener('keyup', this.stageKeyUpHandler, true);
-      window.document.addEventListener('keydown', this.stageKeyDownHandler, true);
+      window.document.addEventListener('keyup', this.stageKeyUpHandler);
+      window.document.addEventListener('keydown', this.stageKeyDownHandler);
     },
 
     beforeDestroy() {
       if (this.moveTween) {
         this.moveTween.stop();
+      }
+
+      if (this.requestAnimationFrameHandler > 0) {
+        window.cancelAnimationFrame(this.requestAnimationFrameHandler);
+        this.requestAnimationFrameHandler = 0;
       }
 
       if (this.stageKeyUpHandler) {
@@ -168,12 +175,15 @@
 
     methods: {
       enterFullScreen() {
-        const luckdrawStage = this.$refs.luckdrawStage;
-        luckdrawStage.webkitRequestFullscreen();
+        this.$refs.stage.webkitRequestFullscreen();
+      },
+
+      exitPage() {
+        this.$router.push({ path: 'award' });
       },
 
       nextLuckDrawClickHanler() {
-//        if (this.moveSpeed > 0.0002) return;
+//        if (this.speed > 0.0002) return;
         if (this.isDataLoading) return;
 
         this.isDataLoading = true;
@@ -192,6 +202,7 @@
             this.totalSelectedAwardsCount = totalSelectedAwardsCount;
             this.totalSelectedDriversCount = totalSelectedDriversCount;
             this.isCompleteLuckdraw = false;
+            this.power = 0;
             this.randomSeed = Math.random();
 
             //显示背景 0.8 s 后播放音乐
@@ -222,10 +233,6 @@
 
             this.luckdrawAward = luckdrawAward;
             this.luckdrawDrivers = luckdrawDrives || [];
-
-            this.x = 0;
-            this.y = 0;
-            this.r = 0;
             this.luckdrawDriverIndex = parseInt(Math.random() * this.luckdrawDrivers.length);
           })
           .catch((err) => {
@@ -241,20 +248,22 @@
       },
 
       startLuckdraw() {
+//        console.log('startLuckdraw', this);
         if (this.isDataLoading) return;
         if (this.isCompleteLuckdraw) return;
 
         this.holdLuckDrawBtnTimeStamp = new Date().getTime();
         this.holdLuckDrawBtn = true;
 
-        const tweenTime = 1;
-
-        this.moveAcceleration = Math.abs(this.moveAcceleration);
+        // 3s
+        const tweenTime = 3;
+        //16 表示5s到80
+        this.power = 8;
         this.moveTween
-          .to({moveAcceleration: 1}, tweenTime * 1000)
+          .to({power: 16}, tweenTime * 1000)
           .easing(TWEEN.Easing.Quartic.In)
           .start();
-        console.info(`抽奖按钮开始 加速度 ${this.moveAcceleration} 动画时间 ${tweenTime.toFixed(2)} 秒 `);
+        console.info(`抽奖按钮开始 加速度 ${this.power} 动画时间 ${tweenTime.toFixed(2)} 秒 `);
       },
 
       releaseLuckdraw() {
@@ -266,67 +275,79 @@
         let tweenTime = this.holdLuckDrawBtnTime;
         if (tweenTime > 15) tweenTime = 15;
 
-        //最终欢动持续时间是按住时间的 4 - 6.5 倍
-//        const randomScaledTime = Math.random() * 2.5 + 4;
+        this.power = -Math.abs(this.power) * 0.8;
+        this.moveTween.stop();
 
-        this.moveAcceleration = -Math.abs(this.moveAcceleration);
-        this.moveTween.to({moveAcceleration: -0.3}, 5 * 1000)
-          .easing(TWEEN.Easing.Circular.Out)
-          .start();
-
-        console.info(`抽奖按钮释放 按住释放时间 ${this.holdLuckDrawBtnTime}s 加速度 ${this.moveAcceleration} 动画时间 ${tweenTime.toFixed(2)} 秒`);
-
-//        if (!this.isValidHoldLuckDrawBtn()) {
-//          if (process.env.NODE_ENV !== 'development') {
-//            this.$say.speak(`喂～老板    你要多按住我一会儿, 你到现在才按住我${this.holdLuckDrawBtnTime.toFixed(2)}秒`);
-//          }
-//        }
-      },
-
-      isValidHoldLuckDrawBtn() {
-        // 1.5 秒 内放开无效
-        return this.holdLuckDrawBtnTime > 1.5;
+        console.info(`抽奖按钮释放 按住释放时间 ${this.holdLuckDrawBtnTime}s 加速度 ${this.power} 动画时间 ${tweenTime.toFixed(2)} 秒`);
       },
 
       render(delta) {
-
         if (this.isDataLoading) return;
-        const luckdrawDrivesCount = this.luckdrawDrivers.length;
-        if (luckdrawDrivesCount === 0) return;
+        if (this.power === 0) return;
+        if (this.isCompleteLuckdraw) return;
 
-        const moveAccelerationScale = 1;//1.8;
-        this.moveSpeed = this.moveSpeed + this.moveAcceleration * moveAccelerationScale * delta;
+        const count = this.luckdrawDrivers.length;
+        if (count === 0) return;
+
+        let speed = this.speed;
+        const power = this.power;
+        let distance = this.distance;
+        let luckdrawDriverIndex = this.luckdrawDriverIndex;
+        let maxHoldTime = this.maxHoldTime;
+
+        //speed 20中 40块 80极快
+        //0.01 - 1
+        //5s 内速度要到80 1s 内速度到16
+        speed = speed + power * delta;
+
         // 限定范围
-        if (this.moveSpeed < 0) {
-          this.moveSpeed = 0;
-        } else if(this.moveSpeed > 15){
-          this.moveSpeed = 15;
+        if (speed <= 0) {
+          speed = 0;
+        } else if(speed > 80){
+          speed = 80;
         }
 
-        this.sectionMoveDistance += this.moveSpeed * delta * (luckdrawDrivesCount * 1.5);// 每秒多少个;
-        let moveIndex = ~~this.sectionMoveDistance;
+        if (speed >= 80) {
+          maxHoldTime += delta;
+        }
+
+        distance += speed * delta;
+        const moveIndex = ~~distance;
         if (moveIndex > 0) {
-          this.sectionMoveDistance = this.sectionMoveDistance - moveIndex;
+          distance = distance - moveIndex;
           // 取模
-          this.luckdrawDriverIndex = (this.luckdrawDriverIndex + moveIndex) % luckdrawDrivesCount;
-          this.luckdrawMarkSelectedDriver(this.luckdrawDriverIndex);
+          luckdrawDriverIndex = (luckdrawDriverIndex + moveIndex) % count;
+          this.luckdrawMarkSelectedDriver(luckdrawDriverIndex);
         }
 
-//        console.log(`delta:${delta.toFixed(2)} acc:${this.moveAcceleration} sp:${this.moveSpeed} moveIndex: ${moveIndex} curIndex: ${this.luckdrawDriverIndex}`);
+        // 停止的逻辑
+        if (power < 0 && speed < -power * delta ) {
+          // 取消阻力
+          this.power = 0;
+          this.maxHoldTime = 0;
+          this.speed = 0;
+          this.distance = 0;
 
-//        if (!this.holdLuckDrawBtn && this.moveSpeed < 0.00001) {
-//          this.moveSpeed = 0;
-//          // 最后在加一步
-//          this.luckdrawDriverIndex = this.luckdrawDriverIndex +1;
-//          this.luckdrawMarkSelectedDriver(this.luckdrawDriverIndex);
+          if (maxHoldTime >= 3) {// >3秒效
+            this.completeLuckdraw(luckdrawDriverIndex);
+          } else {
+            this.$message({
+              showClose: true,
+              message: '操作失败！蓄力必须保持3秒以上！',
+              type: 'warning'
+            });
 
-//          if (!this.isValidHoldLuckDrawBtn()) {
-//            console.log('抽奖时间过短不做为结果！')
-//          } else {
-//            // 这里认为过程结束
-//            this.completeLuckdraw(this.luckdrawDriverIndex);
-//          }
-//        }
+            this.$say(`操作失败 蓄力必须保持3秒以上！ ～老板～ 你要多按住我一会儿, 你到现在蓄力保持了${maxHoldTime}秒`);
+          }
+          return;
+        }
+
+        this.speed = speed;
+        this.distance = distance;
+        this.luckdrawDriverIndex = luckdrawDriverIndex;
+        this.maxHoldTime = maxHoldTime;
+
+        console.log(`delta:${delta.toFixed(2)} power:${power} speed:${speed} moveIndex: ${moveIndex} curIndex: ${luckdrawDriverIndex}`);
       },
 
       luckdrawMarkSelectedDriver(curLuckdrawDriveIndex) {
@@ -341,56 +362,73 @@
       },
 
       completeLuckdraw(luckdrawDriverIndex) {
+        console.log('completeLuckdraw', luckdrawDriverIndex);
         const driver = this.luckdrawDrivers[luckdrawDriverIndex];
         if (!driver) return;
-
-        if (!this.luckdrawAward) return;
+        const award = this.luckdrawAward;
+        if (!award) return;
 
         this.isCompleteLuckdraw = true;
 
-        console.info(`抽奖完成 被抽中当索引是 ${luckdrawDriverIndex} 司机是 ${driver.serial_no}`);
+        console.info(`抽奖完成被抽中当索引是 ${luckdrawDriverIndex} 司机是 ${driver.serial_no}`);
 
-        let sysWords = `恭喜 编号为${driver.serial_no}的司机 ${driver.name} 获奖。奖品编号是 ${this.luckdrawAward.serial_no} 的 ${this.luckdrawAward.name}`;
+        let sysWords = `恭喜。编号为${driver.serial_no}的 ${driver.name} 获奖。奖品编号是${this.luckdrawAward.serial_no} 奖品名称是 ${this.luckdrawAward.name}`;
         if (driver.need_show) {
-          sysWords += '请上台。表演节目完后领奖！'
+          sysWords += `请${driver.name}上台。表演节目完后领奖！`
         } else {
-          sysWords += '请上台。领奖！'
+          sysWords += `请${driver.name}上台。领奖！`
         }
 
+        // 这里是抽奖环节 锁定数据
         this.isDataLoading = true;
-        this.$say.speak(sysWords);
 
+        this.$store.dispatch('ADD_LUCKDRAW', {
+          driver_no: driver.serial_no,
+          award_no: this.luckdrawAward.serial_no,
+        })
+        .catch((err)=>{
+          console.error('报错抽奖数据报错' + err);
+        });
 
-//        this.isDataLoading = true;
-//        this.$store.dispatch('ADD_LUCKDRAW', {
-//          driver_no: driver.serial_no,
-//          award_no: this.luckdrawAward.serial_no,
-//        })
-//        .then(()=>{
-//          this.isDataLoading = false;
-//        })
-//        .catch(()=>{
-//          this.isDataLoading = false;
-//        });
+        this.$say(sysWords, ()=>{
+          // 这里有流程
+          new Promise((resolve, reject) => {
+            if (award.award_sound) {
+              const awardSound = new Howl({src: award.award_sound});
+              awardSound.play();
+              awardSound.once('end', () => {
+                resolve();
+              });
+            } else {
+              resolve();
+            }
+          })
+          .then((resolve, reject) => {
+            if (driver.award_sound) {
+              const driverSound = new Howl({src: award.award_sound});
+              driverSound.play();
+              driverSound.once('end', () => {
+                resolve();
+              });
+            } else {
+              resolve();
+            }
+          })
+          .then(()=>{
+            this.isDataLoading = false;
+          })
+          .catch((err)=>{
+            this.isDataLoading = false;
+            console.error(err);
+          })
+        });
       }
     },
   };
 </script>
 
 <style scoped>
-  .page {
-    padding: 0px;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .crontrolbar {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-  }
-
-  #luckdrawStage {
+  .stage {
     width: 100%;
     height: 100%;
     padding: 150px;
@@ -403,31 +441,42 @@
     /*flex-wrap: wrap;*/
     /*justify-content: flex-start;*/
     /*align-content: flex-start;*/
-    position: relative;
+    position: absolute;
+    z-index: 10;
+  }
+
+  .driver-cur-count {
+    color: #b0dcff;
+    font-size: 24px;
+    text-shadow: 1px 1px 1px black;
+    position: absolute;
+    font-weight: bolder;
+    left: 20px;
+    top:80px;
   }
 
   .award-count {
     color: #FFF;
-    font-size: 26px;
+    font-size: 16px;
     text-shadow: 1px 1px 1px black;
     position: absolute;
     left: 20px;
-    top:20px;
+    top:110px;
   }
 
   .driver-count {
     color: #FFF;
-    font-size: 26px;
+    font-size: 16px;
     text-shadow: 1px 1px 1px black;
     position: absolute;
     left: 20px;
-    top:60px;
+    top:130px;
   }
 
   .next-luckdraw {
     position: absolute;
     left: 20px;
-    top: 120px;
+    top: 20px;
   }
 
   .center-point {
@@ -449,5 +498,23 @@
     background-color: red;
     opacity: 0.8;
     transform: translate(-50%, -50%);
+  }
+
+  .fullscreen-btn {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+  }
+
+  .quit-btn {
+    position: absolute;
+    right: 20px;
+    bottom: 20px;
+  }
+
+  .bg-sound {
+    position: absolute;
+    left: 20px;
+    bottom: 20px;
   }
 </style>

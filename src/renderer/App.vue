@@ -3,7 +3,7 @@
     <el-tabs v-model="activePageName"
              style="padding-left: 5px"
              @tab-click="onTabItemClick">
-      <el-tab-pane label="主页" name="home"></el-tab-pane>
+      <!--<el-tab-pane label="主页" name="home"></el-tab-pane>-->
       <el-tab-pane label="奖品" name="award"></el-tab-pane>
       <el-tab-pane label="司机" name="driver"></el-tab-pane>
       <el-tab-pane label="抽奖" name="luckdraw"></el-tab-pane>
@@ -22,6 +22,12 @@
       return {
         activePageName: this.$route.name || 'home',
       };
+    },
+
+    watch: {
+      $route() {
+        this.activePageName = this.$route.name;
+      },
     },
 
     methods: {
