@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import Dexie from 'dexie';
+import Dexie from 'dexie/dist/dexie.es';
 import ElementUI from 'element-ui';
 import TWEEN from '@tweenjs/tween.js';
 import Howl from 'howler';

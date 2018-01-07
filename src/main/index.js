@@ -22,7 +22,8 @@ function createWindow() {
     useContentSize: true,
     width: 1200,
     webPreferences: {
-      devTools: true, // process.env.NODE_ENV === 'development',
+      webSecurity: false,
+      devTools: process.env.NODE_ENV === 'development',
     },
   });
 
@@ -30,7 +31,7 @@ function createWindow() {
 
   mainWindow.loadURL(winURL);
 
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 
   mainWindow.on('closed', () => {
     mainWindow = null;
