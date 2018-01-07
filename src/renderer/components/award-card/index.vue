@@ -1,5 +1,7 @@
 <template>
-  <div class="card">
+  <div class="card"
+    :class="{animated: isSpeaking, 'flash':isSpeaking, 'infinite':isSpeaking}"
+  >
     <!--<audio v-if="power > 0 && award.luckdraw_sound"-->
            <!--autoplay-->
            <!--loop-->
@@ -61,6 +63,7 @@
 
     data() {
       return {
+        isSpeaking: false,
       };
     },
 
@@ -79,6 +82,10 @@
     },
 
     methods: {
+      setSpeaking(val){
+        this.isSpeaking = val;
+      },
+
       awardBtnMouseDownHandler() {
         this.$emit('holdluckdraw');
       },
@@ -86,7 +93,6 @@
       awardBtnMouseUpHandler() {
         this.$emit('releaseluckdraw')
       },
-
     }
   };
 </script>
@@ -158,5 +164,6 @@
     font-weight: bold;
     bottom: 65px;
     right: 10px;
+    text-shadow: 0 0 2px #000;
   }
 </style>

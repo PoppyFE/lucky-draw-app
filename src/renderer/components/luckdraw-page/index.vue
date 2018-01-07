@@ -32,6 +32,7 @@
                    :driver="driver"></driver-card>
       <award-card
         v-if="luckdrawAward"
+        ref="luckdrawAward"
         :award="luckdrawAward"
         :secret="!isCompleteLuckdraw"
         :power="speed / 80"
@@ -81,6 +82,7 @@
 
         isDataLoading: false,
 
+        winnerLuckdrawDriverIndex: -1,
         isCompleteLuckdraw: false,
 
         randomSeed: 0,
@@ -90,11 +92,15 @@
     created() {
       const that = this;
 
+      const path = require('path');
+      const electron = require('electron');
+
       // 加速度表示速度的变化程度范围0.01-1
       this.power = 0;
+
       this.backgroundImg = process.env.NODE_ENV === 'development' ?
         'file:///Users/alex/Projects/lucky-draw-app/static/luckdraw_bg.jpg' :
-        require('path').join(require('electron').remote.getAppPath(), 'dist/electron/static/luckdraw_bg.jpg');
+        path.join(electron.remote.app.getAppPath(), 'dist/electron/static/luckdraw_bg.jpg');
 
       this.moveTween = new TWEEN.Tween(this);
       this.timestamp = new Date().getTime();
@@ -170,7 +176,9 @@
 
     methods: {
       enterFullScreen() {
-        this.$refs.stage.webkitRequestFullscreen();
+//        this.$refs.stage.webkitRequestFullscreen();
+//        window.document.webkitRequestFullscreen();
+        window.document.body.webkitRequestFullscreen();
       },
 
       exitPage() {
@@ -183,7 +191,9 @@
         if (this.isDataLoading) return;
 
         this.isDataLoading = true;
+        this.luckdrawAward = null;
         this.luckdrawDrivers = [];
+//        this.winnerLuckdrawDriverIndex = -1;
         this.$store.dispatch('LOAD_LUCKDRAW')
           .then((results)=>{
             const {luckdrawAward,
@@ -192,7 +202,10 @@
               totalSelectedAwardsCount,
               totalSelectedDriversCount} = results;
 
-            this.backgroundImg = (luckdrawAward && luckdrawAward.award_img) || this.backgroundImg || require('path').join(require('electron').remote.getAppPath(), 'dist/electron/static/luckdraw_bg.jpg') || '';
+            const path = require('path');
+            const electron = require('electron');
+
+            this.backgroundImg = (luckdrawAward && luckdrawAward.award_img) || this.backgroundImg || path.join(electron.remote.app.getAppPath(), 'dist/electron/static/luckdraw_bg.jpg');
             this.totalAwardsCount = totalAwardsCount;
             this.totalDriversCount = totalDriversCount;
             this.totalSelectedAwardsCount = totalSelectedAwardsCount;
@@ -386,6 +399,7 @@
         const award = this.luckdrawAward;
         if (!award) return;
 
+//        this.winnerLuckdrawDriverIndex = luckdrawDriverIndex;
         this.isCompleteLuckdraw = true;
 
         console.info(`抽奖完成被抽中当索引是 ${luckdrawDriverIndex} 司机是 ${driver.serial_no}`);
@@ -400,7 +414,18 @@
         // 这里是抽奖环节 锁定数据
         this.isDataLoading = true;
 
+        // 停止背景音乐
         this.backgroundSound = '';
+
+        setTimeout(()=>{
+          this.luckdrawDrivers.forEach((driver, index) => {
+            const isWinner = luckdrawDriverIndex === index;
+            let targetDriver = this.$refs['driver_' + index];
+            if (Array.isArray(targetDriver)) { targetDriver = targetDriver[0]}
+            targetDriver.setWinner(isWinner);
+          });
+        }, 1000);
+
 
         this.$store.dispatch('ADD_LUCKDRAW', {
           driver_no: driver.serial_no,
@@ -414,10 +439,18 @@
         this.$say(sysWords, ()=>{
           // 这里有流程
           new Promise((resolve) => {
+            //播放奖品声音
             if (award.award_sound) {
               const awardSound = new Howl({src: award.award_sound});
+              if (this.$refs.luckdrawAward) {
+                this.$refs.luckdrawAward.setSpeaking(true);
+              }
+
               awardSound.play();
               awardSound.once('end', () => {
+                if (this.$refs.luckdrawAward) {
+                  this.$refs.luckdrawAward.setSpeaking(false);
+                }
                 resolve();
               });
             } else {
@@ -428,8 +461,16 @@
             return new Promise((resolve) => {
               if (driver.award_sound) {
                 const driverSound = new Howl({src: award.award_sound});
+
+                if (this.$refs['driver_' + luckdrawDriverIndex]) {
+                  this.$refs['driver_' + luckdrawDriverIndex][0].setSpeaking(true);
+                }
+
                 driverSound.play();
                 driverSound.once('end', () => {
+                  if (this.$refs['driver_' + luckdrawDriverIndex]) {
+                    this.$refs['driver_' + luckdrawDriverIndex][0].setSpeaking(false);
+                  }
                   resolve();
                 });
               } else {

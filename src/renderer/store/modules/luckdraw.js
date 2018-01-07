@@ -130,7 +130,7 @@ const actions = {
             }
 
             // 0 的情况 序号越大越在后面
-            return awardA.serial_no > awardB.serial_no ? -1 : 1;
+            return awardA.serial_no > awardB.serial_no ? 1 : -1;
           });
 
         results.sortAwards = sortAwards;
@@ -144,8 +144,8 @@ const actions = {
         const {luckDrawAward, luckdrawMapDriver, awardPreselectsMapAward } = results;
         if (!luckDrawAward) return results;
 
-        results.filterPreselectDrivers = awardPreselectsMapAward[luckDrawAward.serial_no] ?
-          [...awardPreselectsMapAward[luckDrawAward.serial_no]] : []
+        results.filterPreselectDrivers = (awardPreselectsMapAward[luckDrawAward.serial_no] ?
+          [...awardPreselectsMapAward[luckDrawAward.serial_no]] : [])
           .filter((driver) => {
             if (luckdrawMapDriver[driver.serial_no]) {
               return false;

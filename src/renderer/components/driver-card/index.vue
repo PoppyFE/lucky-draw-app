@@ -1,7 +1,7 @@
 <template>
   <div class="card"
-       :class="{'card-selected':selected}"
-       :style="{transform: 'rotate(' + r + 'deg) translate(' + x + 'px,' + y + 'px)'}">
+       :class="{'card-selected':selected,animated: isSpeaking, 'flash':isSpeaking, 'infinite':isSpeaking}"
+       :style="{transform: 'rotate(' + r + 'deg) translate(' + x + 'px,' + y + 'px)', opacity: isWinner === false ? 0.3 : 1}">
     <div class="card-warp">
       <!--content-->
       <div class="content" :style="{'background-image': 'url('+driver.img+')'}">
@@ -49,6 +49,12 @@
       randomSeed: 0,
     },
 
+    computed: {
+//      isWinner: function() {
+//        return this.winnerIndex !== -1 && this.index === this.winnerIndex;
+//      }
+    },
+
     data() {
       return {
         showValue: 1,
@@ -57,6 +63,8 @@
         x: 0,
         y: 0,
         r: 0,
+        isWinner: null, //true false unknown
+        isSpeaking: false,
       }
     },
 
@@ -77,12 +85,10 @@
 //
         const x = targetRadius * Math.cos(targetAngle*3.14/180);
         const y = targetRadius * Math.sin(targetAngle*3.14/180);
-        const r = 0;
+        this.r = Math.random() * 360;
 
-        // 1200 - 2400
-        const duration = 1200 + 2400 * this.randomSeed;
-        // 1200 - 2400
-        const delay = 1200 + 2400 * this.randomSeed;
+        const duration = 600 + 1200 * this.randomSeed;
+        const delay = 600 + 1200 * this.randomSeed;
 
         const easings = [];
         Object.keys(TWEEN.Easing).forEach(groupName => {
@@ -100,7 +106,7 @@
         const easing = TWEEN.Easing.Linear.None;
         // 0 - 2000
         this.moveTween = new TWEEN.Tween(this)
-          .to({x,y, r}, duration)
+          .to({x,y, r:0}, duration)
           .easing(easing)
           .delay(this.index * (delay / this.count) * 1.8)
           .start();
@@ -117,7 +123,15 @@
     methods: {
       setSelect(val) {
         this.selected = val;
-      }
+      },
+
+      setWinner(val) {
+        this.isWinner = val;
+      },
+
+      setSpeaking(val){
+        this.isSpeaking = val;
+      },
     }
   };
 </script>
@@ -143,6 +157,10 @@
 
   .card-selected {
     z-index: 999;
+  }
+
+  .card-winner {
+
   }
 
   .mask {

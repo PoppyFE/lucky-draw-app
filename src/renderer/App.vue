@@ -54,6 +54,7 @@
   }
 
   html, body, #app {
+    width: 100%;
     height: 100%;
   }
 

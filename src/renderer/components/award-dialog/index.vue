@@ -161,23 +161,7 @@
         fs.copy(file.path, targetPath)
           .then(() => {
             this.form.img = `file://${targetPath}`;
-          })
-          .catch((err) => {
-            this.$message.error(`保存出错！+ \n${err}`);
-          });
-      },
-
-      doAvatarUpload(uploader) {
-        const file = uploader.file;
-
-        const path = require('path');
-        const fs = require('fs-extra');
-        const os = require('os');
-        const userDataDir = process.env.NODE_ENV === 'development' ? os.tmpdir() : this.$electron.remote.app.getAppPath('userData');
-        const targetPath = path.join(userDataDir, 'img', uuidv4() + path.extname(file.path));
-        fs.copy(file.path, targetPath)
-          .then(() => {
-            this.form.img = `file://${targetPath}`;
+            console.log(`保存路径: ${this.form.img}`);
           })
           .catch((err) => {
             this.$message.error(`保存出错！+ \n${err}`);
@@ -195,6 +179,7 @@
         fs.copy(file.path, targetPath)
           .then(() => {
             this.form.award_img = `file://${targetPath}`;
+            console.log(`保存路径: ${this.form.award_img}`);
           })
           .catch((err) => {
             this.$message.error(`保存出错！+ \n${err}`);
@@ -212,6 +197,7 @@
         fs.copy(file.path, targetPath)
           .then(() => {
             this.form.sound = `file://${targetPath}`;
+            console.log(`保存路径: ${this.form.sound}`);
           })
           .catch((err) => {
             this.$message.error(`保存出错！+ \n${err}`);
@@ -229,6 +215,7 @@
         fs.copy(file.path, targetPath)
           .then(() => {
             this.form.award_sound = `file://${targetPath}`;
+            console.log(`保存路径: ${this.form.award_sound}`);
           })
           .catch((err) => {
             this.$message.error(`保存出错！+ \n${err}`);
