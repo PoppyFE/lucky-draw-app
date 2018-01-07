@@ -93,7 +93,8 @@
       // 加速度表示速度的变化程度范围0.01-1
       this.power = 0;
       this.backgroundImg = process.env.NODE_ENV === 'development' ?
-        'file:///Users/alex/Projects/lucky-draw-app/static/luckdraw_bg.jpg' : '';
+        'file:///Users/alex/Projects/lucky-draw-app/static/luckdraw_bg.jpg' :
+        require('path').join(require('electron').remote.getAppPath(), 'dist/electron/static/luckdraw_bg.jpg');
 
       this.moveTween = new TWEEN.Tween(this);
       this.timestamp = new Date().getTime();
@@ -191,7 +192,7 @@
               totalSelectedAwardsCount,
               totalSelectedDriversCount} = results;
 
-            this.backgroundImg = (luckdrawAward && luckdrawAward.award_img) || this.backgroundImg || '';
+            this.backgroundImg = (luckdrawAward && luckdrawAward.award_img) || this.backgroundImg || require('path').join(require('electron').remote.getAppPath(), 'dist/electron/static/luckdraw_bg.jpg') || '';
             this.totalAwardsCount = totalAwardsCount;
             this.totalDriversCount = totalDriversCount;
             this.totalSelectedAwardsCount = totalSelectedAwardsCount;
