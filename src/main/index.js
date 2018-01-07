@@ -22,14 +22,15 @@ function createWindow() {
     useContentSize: true,
     width: 1200,
     webPreferences: {
-      webSecurity: false,
-      devTools: process.env.NODE_ENV === 'development',
+      devTools: true, // process.env.NODE_ENV === 'development',
     },
   });
 
   mainWindow.maximize();
 
   mainWindow.loadURL(winURL);
+
+  mainWindow.webContents.openDevTools();
 
   mainWindow.on('closed', () => {
     mainWindow = null;

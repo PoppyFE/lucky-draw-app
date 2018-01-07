@@ -7,7 +7,7 @@
       <div class="content" :style="{'background-image': 'url('+driver.img+')'}">
       </div>
       <span class="title">{{driver.serial_no}}</span>
-      <el-badge :value="9" class="badge">
+      <el-badge :value="driver.luckdraw_count" class="badge">
       </el-badge>
 
       <el-rate
@@ -41,6 +41,7 @@
         name: '',
         img: null,
         need_show: false, // 表演节目
+        luckdraw_count: 0,
       },
       index: 0,
       count: 0,

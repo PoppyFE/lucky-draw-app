@@ -1,5 +1,4 @@
 import Vue from 'vue';
-import axios from 'axios';
 import Dexie from 'dexie';
 import ElementUI from 'element-ui';
 import TWEEN from '@tweenjs/tween.js';
@@ -14,7 +13,7 @@ import store from './store';
 import db from './db';
 
 if (!process.env.IS_WEB) Vue.use(require('vue-electron'));
-Vue.http = Vue.prototype.$http = axios;
+// Vue.http = Vue.prototype.$http = axios;
 Vue.config.productionTip = process.env.NODE_ENV !== 'production';
 Dexie.debug = process.env.NODE_ENV !== 'production'; // In production, set to false to increase performance a little.
 

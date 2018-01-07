@@ -21,16 +21,6 @@
            :src="backgroundSound">
     </audio>
 
-    <!--<audio v-if="awardSound"-->
-           <!--ref="awardSound"-->
-           <!--:src="awardSound">-->
-    <!--</audio>-->
-    <!---->
-    <!--<audio v-if="driverSound"-->
-           <!--ref="driverSound"-->
-           <!--:src="driverSound">-->
-    <!--</audio>-->
-
     <div class="center-point">
 
       <driver-card v-for="(driver, index) in luckdrawDrivers"
@@ -78,9 +68,6 @@
         backgroundImg: '',
         backgroundSound: '',
 
-        awardSound: '',
-        driverSound: '',
-
         luckdrawAward: null,
         luckdrawDrivers: [],
 
@@ -110,9 +97,11 @@
 
       this.moveTween = new TWEEN.Tween(this);
       this.timestamp = new Date().getTime();
+      this.soundEffectTimeStamp = new Date().getTime();
       this.luckdrawDriverIndex = 0;
       this.distance = 0;
       this.selectedDriver = null;
+      this.luckdrawSoundEffect = null;
 
       // keep the ani
       function animate() {
@@ -149,6 +138,11 @@
     },
 
     beforeDestroy() {
+      if (this.luckdrawSoundEffect) {
+        this.luckdrawSoundEffect.stop();
+        this.luckdrawSoundEffect = null;
+      }
+
       if (this.moveTween) {
         this.moveTween.stop();
       }
@@ -180,6 +174,7 @@
 
       exitPage() {
         this.$router.push({ path: 'award' });
+//        this.luckdrawSoundEffect.play();
       },
 
       nextLuckDrawClickHanler() {
@@ -234,10 +229,24 @@
             this.luckdrawAward = luckdrawAward;
             this.luckdrawDrivers = luckdrawDrives || [];
             this.luckdrawDriverIndex = parseInt(Math.random() * this.luckdrawDrivers.length);
+            this.luckdrawSoundEffect = luckdrawAward && luckdrawAward.luckdraw_sound ? new Howl({src: luckdrawAward.luckdraw_sound}) : null;
           })
           .catch((err) => {
             this.isDataLoading = false;
+            console.error(err);
+
             if (err && err.hasOwnProperty('error') && err.error && err.hasOwnProperty('errorMsg')) {
+
+              const {totalAwardsCount,
+                totalDriversCount,
+                totalSelectedAwardsCount,
+                totalSelectedDriversCount} = err;
+
+              this.totalAwardsCount = totalAwardsCount;
+              this.totalDriversCount = totalDriversCount;
+              this.totalSelectedAwardsCount = totalSelectedAwardsCount;
+              this.totalSelectedDriversCount = totalSelectedDriversCount;
+
               this.$alert(err.errorMsg);
               return;
             }
@@ -337,7 +346,7 @@
               type: 'warning'
             });
 
-            this.$say(`操作失败 蓄力必须保持3秒以上！ ～老板～ 你要多按住我一会儿, 你到现在蓄力保持了${maxHoldTime}秒`);
+            this.$say(`操作失败 蓄力必须保持3秒以上！ ～老板～ 你要多按住我一会儿, 你到现在蓄力保持了${~~maxHoldTime}秒`);
           }
           return;
         }
@@ -358,6 +367,14 @@
         this.selectedDriver = Array.isArray(targetDriver) ? targetDriver[0] : targetDriver;
         if (this.selectedDriver) {
           this.selectedDriver.setSelect(true);
+        }
+
+        if (this.luckdrawSoundEffect) {
+          const curTime = new Date().getTime();
+          if (curTime - this.soundEffectTimeStamp > 50) {
+            this.soundEffectTimeStamp = curTime;
+            this.luckdrawSoundEffect.play();
+          }
         }
       },
 
@@ -382,9 +399,12 @@
         // 这里是抽奖环节 锁定数据
         this.isDataLoading = true;
 
+        this.backgroundSound = '';
+
         this.$store.dispatch('ADD_LUCKDRAW', {
           driver_no: driver.serial_no,
           award_no: this.luckdrawAward.serial_no,
+          luckdrawDrivers: this.luckdrawDrivers,
         })
         .catch((err)=>{
           console.error('报错抽奖数据报错' + err);
@@ -392,7 +412,7 @@
 
         this.$say(sysWords, ()=>{
           // 这里有流程
-          new Promise((resolve, reject) => {
+          new Promise((resolve) => {
             if (award.award_sound) {
               const awardSound = new Howl({src: award.award_sound});
               awardSound.play();
@@ -403,16 +423,18 @@
               resolve();
             }
           })
-          .then((resolve, reject) => {
-            if (driver.award_sound) {
-              const driverSound = new Howl({src: award.award_sound});
-              driverSound.play();
-              driverSound.once('end', () => {
+          .then(() => {
+            return new Promise((resolve) => {
+              if (driver.award_sound) {
+                const driverSound = new Howl({src: award.award_sound});
+                driverSound.play();
+                driverSound.once('end', () => {
+                  resolve();
+                });
+              } else {
                 resolve();
-              });
-            } else {
-              resolve();
-            }
+              }
+            })
           })
           .then(()=>{
             this.isDataLoading = false;

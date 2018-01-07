@@ -9,13 +9,6 @@ const state = {
 };
 
 const mutations = {
-  LOAD_LUCKDRAW(state, item) {
-    state.item = item;
-  },
-
-  ADD_LUCKDRAW(luckdraw) {
-    state.list.push(luckdraw);
-  },
 };
 
 const actions = {
@@ -234,23 +227,43 @@ const actions = {
       })
   },
 
-  ADD_LUCKDRAW({ commit }, luckdrawData) {
-    luckdrawData.create_at = new Date();
-    luckdrawData.update_at = new Date();
-    luckdrawData.serial_no = luckdrawData.driver_no + '-' + luckdrawData.award_no;
-    return Luckdraw.db.add(luckdrawData)
-      .then(id => Luckdraw.db.get(id)
-        .then((luckdraw) => {
-          commit('ADD_LUCKDRAW', luckdraw);
-        }))
-      .catch((err) => {
-        if (err.name === 'ConstraintError') {
-          if (err.message.includes('serial_no')) {
-            err.message = '抽奖序列号重复';
-          }
-        }
-        throw err;
+  ADD_LUCKDRAW({ commit }, data) {
+
+    const luckdrawData = {
+      create_at: new Date(),
+      update_at: new Date(),
+      serial_no: data.driver_no + '-' + data.award_no,
+      driver_no: data.driver_no,
+      award_no: data.award_no,
+    };
+
+    const luckdrawDrivers = data.luckdrawDrivers
+      .filter((driver) => {
+        if (driver.need_show) return false;
+        return true;
       });
+
+    Promise.all(luckdrawDrivers.map((driver) => {
+      // 参与次数
+      let luckdraw_count = driver.luckdraw_count || 0;
+      luckdraw_count = luckdraw_count + 1;
+
+      return Driver.db.update(driver.id, {luckdraw_count});
+    }))
+    .then(()=>{
+      return Luckdraw.db.add(luckdrawData)
+        .then(id => {
+          return Luckdraw.db.get(id);
+        });
+    })
+    .catch((err) => {
+      if (err.name === 'ConstraintError') {
+        if (err.message.includes('serial_no')) {
+          err.message = '抽奖序列号重复';
+        }
+      }
+      throw err;
+    });
   },
 
   LOAD_LUCKDRAW_RESULT({commit}) {
@@ -265,6 +278,7 @@ const actions = {
               Award.db
                 .where({serial_no: luckdraw.award_no})
                 .first(),
+
             ])
             .then(([driver, award]) => {
               return {
@@ -289,7 +303,17 @@ const actions = {
     return Promise.all([
       AwardPreselect.db.clear(),
       Luckdraw.db.clear(),
-    ]);
+      Driver.db.toArray()
+        .then((drivers)=>{
+          return Promise.all(drivers.map(driver => {
+            return Driver.db.update(driver, {luckdraw_count: 0});
+          }));
+        })
+    ])
+      .catch((error) => {
+        console.error(error);
+        throw error;
+      })
   }
 };
 
