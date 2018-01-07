@@ -47,6 +47,10 @@
     padding: 0;
   }
 
+  html {
+    background-color: #fff;
+  }
+
   body {
     margin: 0;
     padding: 0;
