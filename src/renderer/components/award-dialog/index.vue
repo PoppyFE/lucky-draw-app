@@ -156,8 +156,7 @@
         const path = require('path');
         const fs = require('fs-extra');
         const os = require('os');
-        const userDataDir = process.env.NODE_ENV === 'development' ? os.tmpdir() : this.$electron.remote.app.getAppPath('userData');
-        const targetPath = path.join(userDataDir, 'img', uuidv4() + path.extname(file.path));
+        const targetPath = path.join(window.APP_USER_DATA_DIR, 'img', uuidv4() + path.extname(file.path));
         fs.copy(file.path, targetPath)
           .then(() => {
             this.form.img = `file://${targetPath}`;
@@ -174,8 +173,7 @@
         const path = require('path');
         const fs = require('fs-extra');
         const os = require('os');
-        const userDataDir = process.env.NODE_ENV === 'development' ? os.tmpdir() : this.$electron.remote.app.getAppPath('userData');
-        const targetPath = path.join(userDataDir, 'img', uuidv4() + path.extname(file.path));
+        const targetPath = path.join(window.APP_USER_DATA_DIR, 'img', uuidv4() + path.extname(file.path));
         fs.copy(file.path, targetPath)
           .then(() => {
             this.form.award_img = `file://${targetPath}`;
@@ -192,8 +190,7 @@
         const path = require('path');
         const fs = require('fs-extra');
         const os = require('os');
-        const userDataDir = process.env.NODE_ENV === 'development' ? os.tmpdir() : this.$electron.remote.app.getAppPath('userData');
-        const targetPath = path.join(userDataDir, 'sound', uuidv4() + path.extname(file.path));
+        const targetPath = path.join(window.APP_USER_DATA_DIR, 'sound', uuidv4() + path.extname(file.path));
         fs.copy(file.path, targetPath)
           .then(() => {
             this.form.sound = `file://${targetPath}`;
@@ -210,8 +207,7 @@
         const path = require('path');
         const fs = require('fs-extra');
         const os = require('os');
-        const userDataDir = process.env.NODE_ENV === 'development' ? os.tmpdir() : this.$electron.remote.app.getAppPath('userData');
-        const targetPath = path.join(userDataDir, 'sound', uuidv4() + path.extname(file.path));
+        const targetPath = path.join(window.APP_USER_DATA_DIR, 'sound', uuidv4() + path.extname(file.path));
         fs.copy(file.path, targetPath)
           .then(() => {
             this.form.award_sound = `file://${targetPath}`;
@@ -228,8 +224,7 @@
         const path = require('path');
         const fs = require('fs-extra');
         const os = require('os');
-        const userDataDir = process.env.NODE_ENV === 'development' ? os.tmpdir() : this.$electron.remote.app.getAppPath('userData');
-        const targetPath = path.join(userDataDir, 'sound', uuidv4() + path.extname(file.path));
+        const targetPath = path.join(window.APP_USER_DATA_DIR, 'sound', uuidv4() + path.extname(file.path));
         fs.copy(file.path, targetPath)
           .then(() => {
             this.form.luckdraw_sound = `file://${targetPath}`;

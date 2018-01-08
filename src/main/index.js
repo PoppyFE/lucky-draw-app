@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron' // eslint-disable-line
+import { app, BrowserWindow, ipcMain , dialog} from 'electron' // eslint-disable-line
 
 /**
  * Set `__static` path to static files in production
@@ -17,6 +17,7 @@ function createWindow() {
   /**
    * Initial window options
    */
+
   mainWindow = new BrowserWindow({
     height: 600,
     useContentSize: true,
@@ -26,6 +27,9 @@ function createWindow() {
       devTools: true, // /process.env.NODE_ENV === 'development',
     },
   });
+
+  const APP_USER_DATA = app.getPath(process.env.NODE_ENV === 'development' ? 'temp' : 'userData');
+  mainWindow.webContents.executeJavaScript(`window.APP_USER_DATA_DIR="${APP_USER_DATA}"`);
 
   mainWindow.maximize();
 
