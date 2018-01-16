@@ -145,7 +145,7 @@
         const s = W / w;
         const x = W * 0.5 + 20;
 
-        this.moveTween.to({s, x})
+        this.moveTween.to({s, x, y: 0})
           .onComplete(()=>{
             cb();
           })

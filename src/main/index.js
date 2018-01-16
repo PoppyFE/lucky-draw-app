@@ -25,7 +25,7 @@ function createWindow() {
     width: 1200,
     webPreferences: {
       webSecurity: false,
-      devTools: true, // /process.env.NODE_ENV === 'development',
+      devTools: true, // process.env.NODE_ENV === 'development',
     },
   });
 

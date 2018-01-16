@@ -449,24 +449,32 @@
               console.error('报错抽奖数据报错！！！ 请按下一组重新抽奖 Sorry！！！' + err);
               throw err;
             }),
-
-            //动画
-            Promise.all([
-              new Promise(resolve => {
-                // 奖品 和 抽中奖品的人居中显示
-                if (this.$refs.luckdrawAward) {
-                  this.$refs.luckdrawAward.moveToCenter(resolve);
-                }
-              }),
-              new Promise(resolve => {
-                // 奖品 和 抽中奖品的人居中显示
-                if (this.$refs['driver_' + luckdrawDriverIndex]) {
-                  this.$refs['driver_' + luckdrawDriverIndex][0].moveToCenter(resolve);
-                }
-              })
-            ]),
           ]
         )
+        .then(()=>{
+          return new Promise(resolve => {
+            setTimeout(()=>{
+              resolve();
+            }, 1000)
+          });
+        })
+        .then(()=>{
+          //动画
+          return Promise.all([
+            new Promise(resolve => {
+              // 奖品 和 抽中奖品的人居中显示
+              if (this.$refs.luckdrawAward) {
+                this.$refs.luckdrawAward.moveToCenter(resolve);
+              }
+            }),
+            new Promise(resolve => {
+              // 奖品 和 抽中奖品的人居中显示
+              if (this.$refs['driver_' + luckdrawDriverIndex]) {
+                this.$refs['driver_' + luckdrawDriverIndex][0].moveToCenter(resolve);
+              }
+            })
+          ]);
+        })
         .then(()=>{
           this.$say(sysWords, ()=>{
             // 这里有流程
@@ -492,7 +500,7 @@
               .then(() => {
                 return new Promise((resolve) => {
                   if (driver.award_sound) {
-                    const driverSound = new Howl({src: award.award_sound});
+                    const driverSound = new Howl({src: driver.award_sound});
 
                     if (this.$refs['driver_' + luckdrawDriverIndex]) {
                       this.$refs['driver_' + luckdrawDriverIndex][0].setSpeaking(true);
