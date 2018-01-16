@@ -1,6 +1,7 @@
 <template>
   <div class="card"
     :class="{animated: isSpeaking, 'flash':isSpeaking, 'infinite':isSpeaking}"
+    :style="{transform: 'rotate(' + r + 'deg) translate(' + x + 'px,' + y + 'px) scale(' + s + ',' + s + ')'}"
   >
     <!--<audio v-if="power > 0 && award.luckdraw_sound"-->
            <!--autoplay-->
@@ -8,39 +9,41 @@
            <!--:src="award.luckdraw_sound">-->
     <!--</audio>-->
     <!--content-->
-    <div class="content" :style="{'background-image': 'url('+award.img+')', filter: 'blur(' + (secret ? 8 : 0) + 'px)'}">
-    </div>
-    <div class="powerbar" :style="{width: power * 100 + '%', 'background-color':loadingColor }">
-      <p v-if="power > 0" style="color: #cf9236;font-size: 20px;text-align: center;line-height: 60px">～恭喜发财 保持～</p>
-    </div>
-    <span class="title">{{award.serial_no}}</span>
+    <div class="card-warp">
+      <div class="content" :style="{'background-image': 'url('+award.img+')', filter: 'blur(' + (secret ? 8 : 0) + 'px)'}">
+      </div>
+      <div class="powerbar" :style="{width: power * 100 + '%', 'background-color':loadingColor }">
+        <p v-if="power > 0" style="color: #cf9236;font-size: 20px;text-align: center;line-height: 60px">～恭喜发财 保持～</p>
+      </div>
+      <span class="title">{{award.serial_no}}</span>
 
-    <i v-if="power > 0"
-       class="el-icon-loading loading"
-       :style="{'animation-duration': (-2.5 * power + 2.8) + 's', color: loadingColor}"></i>
-    <!--contolbar-->
-    <div class="footer">
-      <span v-if="secret">***********</span>
-      <span v-else>{{award.name}}</span>
-      <div style="flex-grow: 1"></div>
-      <!--el-icon-loadin-->
+      <i v-if="power > 0"
+         class="el-icon-loading loading"
+         :style="{'animation-duration': (-2.5 * power + 2.8) + 's', color: loadingColor}"></i>
+      <!--contolbar-->
+      <div class="footer">
+        <span v-if="secret">***********</span>
+        <span v-else>{{award.name}}</span>
+        <div style="flex-grow: 1"></div>
+        <!--el-icon-loadin-->
 
-      <el-button type="text"
-                 class="button awardBtn"
-                 icon="el-icon-location"
-                 @mousedown.native="awardBtnMouseDownHandler()"
-                 @mouseup.native="awardBtnMouseUpHandler()">抽奖</el-button>
+        <el-button type="text"
+                   class="button awardBtn"
+                   icon="el-icon-location"
+                   @mousedown.native="awardBtnMouseDownHandler()"
+                   @mouseup.native="awardBtnMouseUpHandler()">抽奖</el-button>
+      </div>
+
+      <p class="max-holdtime"  v-if="power > 0.95 && maxHoldTime > 0">{{maxHoldTime }}S
+        <span v-if="maxHoldTime >= 6 && maxHoldTime < 10">(不错哟！)</span>
+        <span v-else-if="maxHoldTime >= 10 && maxHoldTime < 15">(加油！)</span>
+        <span v-else-if="maxHoldTime >= 15 && maxHoldTime < 30">(还在玩?)</span>
+        <span v-else-if="maxHoldTime >= 30 && maxHoldTime < 50">(可以放了!)</span>
+        <span v-else-if="maxHoldTime >= 50 && maxHoldTime < 60">(你疯了~)</span>
+        <span v-else-if="maxHoldTime >= 60 && maxHoldTime < 100">(好吧你赢了~ 后面100s还有你信么?)</span>
+        <span v-else-if="maxHoldTime >= 100">(加我微信15000273960)</span>
+      </p>
     </div>
-
-    <p class="max-holdtime"  v-if="power > 0.95 && maxHoldTime > 0">{{maxHoldTime }}S
-      <span v-if="maxHoldTime >= 6 && maxHoldTime < 10">(不错哟！)</span>
-      <span v-else-if="maxHoldTime >= 10 && maxHoldTime < 15">(加油！)</span>
-      <span v-else-if="maxHoldTime >= 15 && maxHoldTime < 30">(还在玩?)</span>
-      <span v-else-if="maxHoldTime >= 30 && maxHoldTime < 50">(可以放了!)</span>
-      <span v-else-if="maxHoldTime >= 50 && maxHoldTime < 60">(你疯了~)</span>
-      <span v-else-if="maxHoldTime >= 60 && maxHoldTime < 100">(好吧你赢了~ 后面100s还有你信么?)</span>
-      <span v-else-if="maxHoldTime >= 100">(加我微信15000273960)</span>
-    </p>
   </div>
 </template>
 
@@ -59,11 +62,16 @@
       secret: true,
       power: 0, //0-1
       maxHoldTime: 0,
+      randomSeed: 0,
     },
 
     data() {
       return {
         isSpeaking: false,
+        x: 0,
+        y: 0,
+        r: 0,
+        s: 1,
       };
     },
 
@@ -79,11 +87,59 @@
     },
 
     created() {
+//      const duration = 600 + 1200 * this.randomSeed;
+//
+//      const easings = [];
+//      Object.keys(TWEEN.Easing).forEach(groupName => {
+//        const item = TWEEN.Easing[groupName];
+//        Object.keys(item).forEach(itemName => {
+//          easings.push(item[itemName]);
+//        })
+//      });
+//
+//      let idx = this.round % easings.length;
+//      if (process.env.NODE_ENV === 'development') {
+//        idx = ~~(Math.random() * easings.length);
+//      }
+////        const easing = easings[idx] || TWEEN.Easing.Linear.None;
+//      const easing = TWEEN.Easing.Linear.None;
+//      // 0 - 2000
+//      this.moveTween = new TWEEN.Tween(this)
+//        .to({r:360}, duration)
+//        .easing(easing)
+//        .start();
+
+      this.moveTween = new TWEEN.Tween(this);
+    },
+
+    beforeDestroy() {
+      if (this.moveTween) {
+        this.moveTween.stop();
+      }
+      this.moveTween = null;
     },
 
     methods: {
       setSpeaking(val){
         this.isSpeaking = val;
+      },
+
+      moveToCenter(cb) {
+        this.moveTween.stop();
+
+        const w = 250;
+        const W = 500;
+
+//        const h = 300;
+
+        const s = W / w;
+        const x = - W * 0.5 - 20;
+
+        this.moveTween.to({s, x})
+          .onComplete(()=>{
+            cb();
+          })
+          .start();
       },
 
       awardBtnMouseDownHandler() {
@@ -99,6 +155,12 @@
 
 <style scoped>
   .card {
+    width: 0px;
+    height: 0px;
+    position: absolute;
+  }
+
+  .card-warp {
     width: 250px;
     height: 300px;
     border-radius: 8px;

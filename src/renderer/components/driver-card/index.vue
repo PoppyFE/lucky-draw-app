@@ -1,7 +1,7 @@
 <template>
   <div class="card"
        :class="{'card-selected':selected,animated: isSpeaking, 'flash':isSpeaking, 'infinite':isSpeaking}"
-       :style="{transform: 'rotate(' + r + 'deg) translate(' + x + 'px,' + y + 'px)', opacity: isWinner === false ? 0.3 : 1}">
+       :style="{transform: 'rotate(' + r + 'deg) translate(' + x + 'px,' + y + 'px) scale(' + s + ',' + s + ')', opacity: isWinner === false ? 0.3 : 1}">
     <div class="card-warp">
       <!--content-->
       <div class="content" :style="{'background-image': 'url('+driver.img+')'}">
@@ -25,7 +25,7 @@
         <span>{{driver.name}}</span>
       </div>
 
-      <div class="mask" v-show="selected"></div>
+      <div class="mask" v-show="selected && !isWinnerShow"></div>
     </div>
     </div>
 </template>
@@ -63,8 +63,10 @@
         x: 0,
         y: 0,
         r: 0,
+        s: 1,
         isWinner: null, //true false unknown
         isSpeaking: false,
+        isWinnerShow: false,
       }
     },
 
@@ -131,6 +133,23 @@
 
       setSpeaking(val){
         this.isSpeaking = val;
+      },
+
+      moveToCenter(cb) {
+        this.isWinnerShow = true;
+        this.moveTween.stop();
+
+        const w = 150;
+        const W = 500;
+
+        const s = W / w;
+        const x = W * 0.5 + 20;
+
+        this.moveTween.to({s, x})
+          .onComplete(()=>{
+            cb();
+          })
+          .start();
       },
     }
   };

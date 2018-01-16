@@ -254,8 +254,8 @@
           return false;
         }
 
-        if (file.type !== 'audio/mp3') {
-          this.$message.error('只支持mp3 格式的文件!');
+        if (!file.type.startsWith('audio')) {
+          this.$message.error('不支持的声音 格式的文件!');
           return false;
         }
 

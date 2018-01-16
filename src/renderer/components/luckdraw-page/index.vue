@@ -36,6 +36,7 @@
         :award="luckdrawAward"
         :secret="!isCompleteLuckdraw"
         :power="speed / 80"
+        :randomSeed="randomSeed"
         :maxHoldTime="~~maxHoldTime"
         :round="totalSelectedAwardsCount"
         @holdluckdraw="startLuckdraw"
@@ -416,59 +417,71 @@
         // 停止背景音乐
         this.backgroundSound = '';
 
-        setTimeout(()=>{
-          this.luckdrawDrivers.forEach((driver, index) => {
-            const isWinner = luckdrawDriverIndex === index;
-            let targetDriver = this.$refs['driver_' + index];
-            if (Array.isArray(targetDriver)) { targetDriver = targetDriver[0]}
-            targetDriver.setWinner(isWinner);
-          });
-        }, 1000);
 
+        // 这里有段动画
 
-        this.$store.dispatch('ADD_LUCKDRAW', {
-          driver_no: driver.serial_no,
-          award_no: this.luckdrawAward.serial_no,
-          luckdrawDrivers: this.luckdrawDrivers,
-        })
-        .catch((err)=>{
-          console.error('报错抽奖数据报错' + err);
-        });
-
-        this.$say(sysWords, ()=>{
-          // 这里有流程
-          new Promise((resolve) => {
-            //播放奖品声音
-            if (award.award_sound) {
-              const awardSound = new Howl({src: award.award_sound});
-              if (this.$refs.luckdrawAward) {
-                this.$refs.luckdrawAward.setSpeaking(true);
-              }
-
-              awardSound.play();
-              awardSound.once('end', () => {
-                if (this.$refs.luckdrawAward) {
-                  this.$refs.luckdrawAward.setSpeaking(false);
-                }
+        Promise.all(
+          [
+            // 高亮
+            new Promise((resolve) => {
+              setTimeout(()=>{
+                this.luckdrawDrivers.forEach((driver, index) => {
+                  const isWinner = luckdrawDriverIndex === index;
+                  let targetDriver = this.$refs['driver_' + index];
+                  if (Array.isArray(targetDriver)) { targetDriver = targetDriver[0]}
+                  targetDriver.setWinner(isWinner);
+                });
                 resolve();
-              });
-            } else {
-              resolve();
-            }
-          })
-          .then(() => {
-            return new Promise((resolve) => {
-              if (driver.award_sound) {
-                const driverSound = new Howl({src: award.award_sound});
+              }, 1000)
+            }),
 
+            this.$store.dispatch('ADD_LUCKDRAW', {
+              driver_no: driver.serial_no,
+              award_no: this.luckdrawAward.serial_no,
+              luckdrawDrivers: this.luckdrawDrivers,
+            })
+            .catch((err)=>{
+              this.$message({
+                showClose: true,
+                message: '报错抽奖数据报错！！！ 请按下一组重新抽奖 Sorry！！！',
+                type: 'warning'
+              });
+              console.error('报错抽奖数据报错！！！ 请按下一组重新抽奖 Sorry！！！' + err);
+              throw err;
+            }),
+
+            //动画
+            Promise.all([
+              new Promise(resolve => {
+                // 奖品 和 抽中奖品的人居中显示
+                if (this.$refs.luckdrawAward) {
+                  this.$refs.luckdrawAward.moveToCenter(resolve);
+                }
+              }),
+              new Promise(resolve => {
+                // 奖品 和 抽中奖品的人居中显示
                 if (this.$refs['driver_' + luckdrawDriverIndex]) {
-                  this.$refs['driver_' + luckdrawDriverIndex][0].setSpeaking(true);
+                  this.$refs['driver_' + luckdrawDriverIndex][0].moveToCenter(resolve);
+                }
+              })
+            ]),
+          ]
+        )
+        .then(()=>{
+          this.$say(sysWords, ()=>{
+            // 这里有流程
+            new Promise((resolve) => {
+              //播放奖品声音
+              if (award.award_sound) {
+                const awardSound = new Howl({src: award.award_sound});
+                if (this.$refs.luckdrawAward) {
+                  this.$refs.luckdrawAward.setSpeaking(true);
                 }
 
-                driverSound.play();
-                driverSound.once('end', () => {
-                  if (this.$refs['driver_' + luckdrawDriverIndex]) {
-                    this.$refs['driver_' + luckdrawDriverIndex][0].setSpeaking(false);
+                awardSound.play();
+                awardSound.once('end', () => {
+                  if (this.$refs.luckdrawAward) {
+                    this.$refs.luckdrawAward.setSpeaking(false);
                   }
                   resolve();
                 });
@@ -476,14 +489,35 @@
                 resolve();
               }
             })
-          })
-          .then(()=>{
-            this.isDataLoading = false;
-          })
-          .catch((err)=>{
-            this.isDataLoading = false;
-            console.error(err);
-          })
+              .then(() => {
+                return new Promise((resolve) => {
+                  if (driver.award_sound) {
+                    const driverSound = new Howl({src: award.award_sound});
+
+                    if (this.$refs['driver_' + luckdrawDriverIndex]) {
+                      this.$refs['driver_' + luckdrawDriverIndex][0].setSpeaking(true);
+                    }
+
+                    driverSound.play();
+                    driverSound.once('end', () => {
+                      if (this.$refs['driver_' + luckdrawDriverIndex]) {
+                        this.$refs['driver_' + luckdrawDriverIndex][0].setSpeaking(false);
+                      }
+                      resolve();
+                    });
+                  } else {
+                    resolve();
+                  }
+                })
+              })
+              .then(()=>{
+                this.isDataLoading = false;
+              })
+              .catch((err)=>{
+                this.isDataLoading = false;
+                console.error(err);
+              })
+          });
         });
       }
     },

@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain , dialog} from 'electron' // eslint-disable-line
+import path from 'path';
 
 /**
  * Set `__static` path to static files in production
@@ -28,7 +29,10 @@ function createWindow() {
     },
   });
 
-  const APP_USER_DATA = app.getPath(process.env.NODE_ENV === 'development' ? 'temp' : 'userData');
+  const APP_USER_DATA = process.env.NODE_ENV === 'development' ?
+    path.join(process.cwd(), '.user-data') :
+    app.getPath('userData');
+
   mainWindow.webContents.executeJavaScript(`window.APP_USER_DATA_DIR="${APP_USER_DATA}"`);
 
   mainWindow.maximize();
