@@ -4,7 +4,7 @@
        :style="{transform: 'rotate(' + r + 'deg) translate(' + x + 'px,' + y + 'px) scale(' + s + ',' + s + ')', opacity: isWinner === false ? 0.3 : 1}">
     <div class="card-warp">
       <!--content-->
-      <div class="content" :style="{'background-image': 'url('+driver.img+')'}">
+      <div class="content" :style="{'background-image': 'url('+encodeURI(driver.img)+')'}">
       </div>
       <span class="title">{{driver.serial_no}}</span>
       <el-badge :value="driver.luckdraw_count" class="badge">

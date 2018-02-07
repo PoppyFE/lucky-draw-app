@@ -2582,7 +2582,7 @@ eslint-config-airbnb-base@^11.2.0:
 
 eslint-friendly-formatter@^3.0.0:
   version "3.0.0"
-  resolved "http://registry.npm.taobao.org/eslint-friendly-formatter/download/eslint-friendly-formatter-3.0.0.tgz#278874435a6c46ec1d94fa0b1ff494e30ef04290"
+  resolved "https://registry.yarnpkg.com/eslint-friendly-formatter/-/eslint-friendly-formatter-3.0.0.tgz#278874435a6c46ec1d94fa0b1ff494e30ef04290"
   dependencies:
     chalk "^1.0.0"
     coalescy "1.0.0"

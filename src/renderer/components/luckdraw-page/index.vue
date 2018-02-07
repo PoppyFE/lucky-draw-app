@@ -206,7 +206,8 @@
             const path = require('path');
             const electron = require('electron');
 
-            this.backgroundImg = (luckdrawAward && luckdrawAward.award_img) || this.backgroundImg || path.join(electron.remote.app.getAppPath(), 'dist/electron/static/luckdraw_bg.jpg');
+            this.backgroundImg = (luckdrawAward && luckdrawAward.award_img && encodeURI(luckdrawAward.award_img)) || this.backgroundImg || path.join(electron.remote.app.getAppPath(), 'dist/electron/static/luckdraw_bg.jpg');
+            console.log('更新背景图片:', this.backgroundImg);
             this.totalAwardsCount = totalAwardsCount;
             this.totalDriversCount = totalDriversCount;
             this.totalSelectedAwardsCount = totalSelectedAwardsCount;

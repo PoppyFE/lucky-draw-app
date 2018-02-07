@@ -14,4 +14,6 @@ module.exports = {
   out: path.join(__dirname, '../build'),
   overwrite: true,
   platform: 'darwin',//process.env.BUILD_TARGET || 'all'
+  packageManager: 'yarn',
+  prune: false,
 }

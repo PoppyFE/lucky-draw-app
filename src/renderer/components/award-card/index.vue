@@ -10,7 +10,7 @@
     <!--</audio>-->
     <!--content-->
     <div class="card-warp">
-      <div class="content" :style="{'background-image': 'url('+award.img+')', filter: 'blur(' + (secret ? 8 : 0) + 'px)'}">
+      <div class="content" :style="{'background-image': 'url('+encodeURI(award.img)+')', filter: 'blur(' + (secret ? 8 : 0) + 'px)'}">
       </div>
       <div class="powerbar" :style="{width: power * 100 + '%', 'background-color':loadingColor }">
         <p v-if="power > 0" style="color: #cf9236;font-size: 20px;text-align: center;line-height: 60px">～恭喜发财 保持～</p>
